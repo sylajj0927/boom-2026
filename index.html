@@ -11,6 +11,40 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="BOOM! 2026 祝福產生器">
     <meta property="og:description" content="跨年 00:00 要傳什麼？點你想傳的人，我來幫你生一段客製祝福。">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "BOOM! 2026 祝福產生器",
+  "url": "https://boom-2026-card.netlify.app",
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "All",
+  "inLanguage": "zh-TW",
+  "isAccessibleForFree": true,
+  "description": "一款專為 2026 跨年設計的線上祝福語產生器。依照對象（曖昧、前任、老闆、朋友等）一鍵生成客製化文案，還能產出精美截圖卡片，直接分享給對方。",
+  "image": "https://boom-2026-card.netlify.app/boom_bk.png",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "TWD"
+  },
+  "featureList": [
+    "依曖昧、前任、老闆、爸媽、死黨等不同對象，一鍵生成祝福語",
+    "內建 300 句以上 2026 跨年祝福文案",
+    "支援 LINE 一鍵分享與分享網址複製",
+    "自動產生 9:16 精美祝福卡，可下載分享"
+  ],
+  "keywords": [
+    "跨年祝福",
+    "2026 祝福語",
+    "跨年簡訊範本",
+    "LINE 跨年訊息",
+    "新年快樂文案",
+    "客製祝福產生器"
+  ]
+}
+</script>
+
     <!-- 如果之後有「12 宮格預覽圖」，可以把這個 og:image 換成那張圖 -->
     <meta property="og:url" content="https://boom-2026-card.netlify.app">
     <meta property="og:image" content="https://boom-2026-card.netlify.app/boom_bk.png">
@@ -36,13 +70,20 @@
         }
 
         body {
-            margin: 0; padding: 0;
-            width: 100%; min-height: 100vh;
-            overflow: hidden;
-            background-color: #000;
-            color: white;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;   /* 防止左右捲動 */
+    overflow-y: auto;     /* 允許上下捲動，才能看到最下面的 FAQ 區塊 */
+    background-color: #000;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
 
         #app-background {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
@@ -60,6 +101,47 @@
             background: radial-gradient(circle at center, rgba(40, 10, 60, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
             z-index: -1; pointer-events: none;
         }
+        .seo-faq {
+    width: 100%;
+    max-width: var(--mobile-width);
+    margin: 32px auto 24px;
+    padding: 0 20px 40px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.seo-faq details {
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 12px 14px;
+}
+
+.seo-faq summary {
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none;
+}
+
+.seo-faq summary::-webkit-details-marker {
+    display: none;
+}
+
+.seo-faq h1 {
+    font-size: 1rem;
+    margin: 12px 0 4px;
+}
+
+.seo-faq h2 {
+    font-size: 0.9rem;
+    margin: 10px 0 4px;
+}
+
+.seo-faq p {
+    margin: 4px 0 8px;
+    line-height: 1.5;
+}
+
 
         /* 預載區 (隱藏) */
         #preload-area { display: none; width: 0; height: 0; overflow: hidden; }
@@ -205,11 +287,7 @@
             white-space: pre-wrap; word-wrap: break-word;
         }
 
-        .footeropyright {
-            margin-top: 30px; padding-bottom: 50px;
-            font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);
-            letter-spacing: 1px; font-family: sans-serif;
-        }
+        
 
         .footer-copyright {
             margin-top: 30px; padding-bottom: 50px;
@@ -329,6 +407,35 @@
             <div class="footer-copyright">Powered by BOOM 2026</div>
         </div>
     </div>
+        <!-- 2026 跨年祝福說明區（SEO / GEO 友善，可給人類看到） -->
+    <section class="seo-faq">
+        <details>
+            <summary>更多 2026 跨年祝福靈感（展開查看）</summary>
+
+            <h1>2026 跨年創意祝福語大全</h1>
+            <p>還在煩惱 2026 跨年要傳什麼給曖昧對象嗎？這裡整理了給曖昧、前任、老闆、死黨、爸媽的創意祝福語，讓你一鍵複製、不怕詞窮。</p>
+
+            <h2>給老闆的 2026 跨年祝福</h2>
+            <p>
+                範例如：老闆 2026 也要被您帶飛、希望公司越來越大、謝謝您今年的照顧，
+                也可以玩笑說 2026 希望我們加班有加錢、年終多一點、開會不要再開到半夜。
+            </p>
+
+            <h2>給前任的 2026 跨年祝福</h2>
+            <p>
+                範例如：祝我們各自安好，不要互相打擾、希望你過得很好，比跟我在一起時更好、
+                謝謝你曾經讓我那麼認真喜歡過，也祝你找到真正屬於你的幸福。
+            </p>
+
+            <h2>給老公老婆的搞笑祝福</h2>
+            <p>
+                範例如：老公，2026 我們要不要簽和平條約，誰先生氣誰睡沙發；
+                老婆，2026 能不能把「隨便」從人生字典裡刪除；
+                或者甜一點：2026 還要一起跨很多個年、繼續當我一輩子的男朋友／女朋友。
+            </p>
+        </details>
+    </section>
+
 
     <script>
         const bgMap = {
