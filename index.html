@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>BOOM! 2026 祝福產生器</title>
+
+    <!-- SEO / 社群預覽（LINE / FB 等會用這些） -->
+    <meta name="description" content="跨年 00:00 要傳什麼？點你想傳的人，我來幫你生一段客製祝福。">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="BOOM! 2026 祝福產生器">
+    <meta property="og:description" content="跨年 00:00 要傳什麼？點你想傳的人，我來幫你生一段客製祝福。">
+    <meta property="og:url" content="https://boom-2026-card.netlify.app">
+    <meta property="og:image" content="https://boom-2026-card.netlify.app/boom_bk.png">
+    <meta property="og:locale" content="zh_TW">
+
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
@@ -193,6 +204,12 @@
             white-space: pre-wrap; word-wrap: break-word;
         }
 
+        .footeropyright {
+            margin-top: 30px; padding-bottom: 50px;
+            font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1px; font-family: sans-serif;
+        }
+
         .footer-copyright {
             margin-top: 30px; padding-bottom: 50px;
             font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);
@@ -290,9 +307,15 @@
             <div class="action-bar">
                 <button class="btn-restart" onclick="resetApp()">再抽一張</button>
                 <div class="share-icons">
-                    <div class="icon-btn" onclick="copyText()"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></div>
-                    <div class="icon-btn line" onclick="shareLine()"><svg viewBox="0 0 24 24"><path d="M20.5 10.3c0-4.6-4.2-8.3-9.4-8.3-5.2 0-9.4 3.7-9.4 8.3 0 2.3 1 4.4 2.6 5.9 0.3 0.3 0.2 0.8 0.1 1.2-0.3 1.1-1.1 2.4-1.2 2.6 0 0 0 0.2 0.2 0.2 0.1 0 1.6-0.2 3.5-1.3 0.5-0.3 1-0.3 1.5-0.2 0.7 0.2 1.4 0.3 2.2 0.3 5.1 0 9.3-3.7 9.3-8.3z"/></svg></div>
-                    <div class="icon-btn" onclick="downloadImage()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></div>
+                    <div class="icon-btn" onclick="copyText()">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </div>
+                    <div class="icon-btn line" onclick="shareLine()">
+                        <svg viewBox="0 0 24 24"><path d="M20.5 10.3c0-4.6-4.2-8.3-9.4-8.3-5.2 0-9.4 3.7-9.4 8.3 0 2.3 1 4.4 2.6 5.9 0.3 0.3 0.2 0.8 0.1 1.2-0.3 1.1-1.1 2.4-1.2 2.6 0 0 0 0.2 0.2 0.2 0.1 0 1.6-0.2 3.5-1.3 0.5-0.3 1-0.3 1.5-0.2 0.7 0.2 1.4 0.3 2.2 0.3 5.1 0 9.3-3.7 9.3-8.3z"/></svg>
+                    </div>
+                    <div class="icon-btn" onclick="downloadImage()">
+                        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    </div>
                 </div>
             </div>
             <div class="footer-copyright">Powered by BOOM 2026</div>
@@ -314,7 +337,7 @@
             parents: '🧧 爸媽', enemy: '☠️ 死對頭', eng_quotes: '✨ 2026', random: '🎲 幸運兒'
         };
 
-        // 1. 強制預載所有圖片
+        // 預載所有背景圖片
         const preloadArea = document.getElementById('preload-area');
         Object.values(bgMap).forEach(src => {
             const img = new Image();
@@ -322,7 +345,7 @@
             preloadArea.appendChild(img);
         });
 
-        // 完整文案資料庫 (300句)
+        // 完整文案資料庫
         const quotesData = {
             crush: [
                 "2026 想跟你的訊息框一直在置頂", "新年倒數的時候，能不能剛好想到我", "2026 想變成你每天早安第一個看到的人",
@@ -477,7 +500,7 @@
         }
 
         function startCharge(e) {
-            if(e) e.preventDefault();
+            if (e) e.preventDefault();
             chargeTimer = setInterval(() => {
                 progress += 3;
                 chargeCircle.style.setProperty('--progress', `${progress}%`);
@@ -499,7 +522,7 @@
             }
         }
 
-        // 關鍵邏輯：使用圖片預載確保無縫切換
+        // 使用圖片預載確保無縫切換
         function completeCharge() {
             clearInterval(chargeTimer);
             body.classList.remove('shaking');
@@ -546,7 +569,10 @@
 
         function copyText() {
             const text = document.getElementById('result-text').innerText;
-            if (!navigator.clipboard) { alert("瀏覽器安全性限制，請手動複製！"); return; }
+            if (!navigator.clipboard) {
+                alert("瀏覽器安全性限制，請手動複製！");
+                return;
+            }
             navigator.clipboard.writeText(text).then(() => {
                 const toast = document.getElementById('toast');
                 toast.classList.add('show');
@@ -556,7 +582,8 @@
 
         function shareLine() {
             const text = document.getElementById('result-text').innerText;
-            window.location.href = `https://line.me/R/msg/text/?BOOM! 2026 祝福：${encodeURIComponent(text)}`;
+            const msg = `BOOM! 2026 祝福：${text}`;
+            window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
         }
 
         function downloadImage() {
