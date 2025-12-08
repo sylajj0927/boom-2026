@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BOOM! 2026 祝福產生器</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --glass-border: 1px solid rgba(255, 255, 255, 0.25);
+            --dark-glass-bg: rgba(20, 10, 30, 0.65);
+            --gold: #FFD700;
+            --mobile-width: 480px;
+            --base-bg-color: #2b0030; 
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            width: 100%; min-height: 100vh;
+            overflow: hidden;
+            background-color: #000;
+            color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        #app-background {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: var(--mobile-width); height: 100%;
+            background-image: url('./boom_bk.png'); 
+            background-color: var(--base-bg-color);
+            background-size: cover; background-position: center bottom;
+            background-repeat: no-repeat; z-index: -2;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .bg-overlay {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: var(--mobile-width); height: 100%;
+            background: radial-gradient(circle at center, rgba(40, 10, 60, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* 預載區 (隱藏) */
+        #preload-area { display: none; width: 0; height: 0; overflow: hidden; }
+
+        /* === Header === */
+        header {
+            margin-top: 40px; margin-bottom: 20px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            z-index: 10; width: 100%; padding: 0 20px;
+        }
+
+        .logo {
+            font-family: 'Arial Black', sans-serif; font-size: 2.8rem; color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8); letter-spacing: 2px; margin-bottom: 8px;
+        }
+
+        .header-text { color: rgba(255, 255, 255, 0.95); text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .header-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
+        .header-subtitle { font-size: 1rem; font-weight: 400; opacity: 0.9; }
+
+        /* === 12宮格 === */
+        #app-container {
+            width: 100%; max-width: var(--mobile-width);
+            height: 100%; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            position: relative;
+        }
+
+        #home-view {
+            width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding-bottom: 40px;
+        }
+
+        .grid-container {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            width: 100%; padding: 20px; margin: 0 20px;
+            background: rgba(255, 255, 255, 0.12); border-radius: 28px;
+            border: var(--glass-border); backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box; 
+        }
+
+        .grid-item {
+            aspect-ratio: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 18px; color: #fff; cursor: pointer;
+            transition: transform 0.1s; padding: 5px 0;
+        }
+        .grid-item:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.4); }
+
+        .btn-icon { font-size: 2.2rem; margin-bottom: 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3)); }
+        .btn-text { font-size: 1rem; font-weight: 600; letter-spacing: 1px; }
+
+        .grid-item.random-btn {
+            background: rgba(255, 215, 0, 0.2); border: 1px solid rgba(255, 215, 0, 0.8);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
+        }
+        .grid-item.random-btn .btn-text { color: #FFD700; text-shadow: 0 0 5px rgba(0,0,0,0.8); }
+
+        /* === 集氣畫面 === */
+        #charge-view {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 50; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        .charge-circle {
+            width: 240px; height: 240px; position: absolute; border-radius: 50%;
+            background: conic-gradient(#fff var(--progress, 0%), rgba(255,255,255,0.15) 0%);
+            -webkit-mask: radial-gradient(transparent 64%, black 65%);
+            mask: radial-gradient(transparent 64%, black 65%);
+            transform: translateZ(0); z-index: 1;
+        }
+        
+        .charge-glow {
+            position: absolute; width: 240px; height: 240px;
+            border-radius: 50%; box-shadow: 0 0 40px rgba(255, 255, 255, 0.4);
+            opacity: 0.5; pointer-events: none; z-index: 0;
+        }
+
+        .charge-text {
+            position: relative; z-index: 10; font-size: 1.4rem; font-weight: 900; color: #fff;
+            text-shadow: 0 0 15px rgba(255,255,255,0.9); letter-spacing: 2px;
+            text-align: center; pointer-events: none; 
+        }
+
+        .finger-hint {
+            position: absolute; bottom: 25%; font-size: 3.5rem;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.8));
+            animation: bounce 1.5s infinite; z-index: 2;
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(15px); } }
+
+        .shaking { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
+        @keyframes shake { 
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        /* === 結果彈窗 === */
+        #result-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            z-index: 100; flex-direction: column; justify-content: center; align-items: center;
+            overflow-y: auto; padding: 20px 0;
+            animation: modalFadeIn 0.4s ease-out;
+        }
+        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .role-hint-label {
+            color: #FFD700; font-size: 1.2rem; font-weight: bold; 
+            margin-top: 80px; margin-bottom: 25px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8); letter-spacing: 2px; text-align: center;
+            animation: slideDown 0.5s ease;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .result-card {
+            width: 88%; max-width: 340px; aspect-ratio: 9/16; padding: 0;
+            background-image: url('./boom_bk.png'); 
+            background-color: var(--base-bg-color); /* 保底色 */
+            background-size: cover; background-position: center;
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            position: relative; overflow: hidden;
+        }
+
+        .card-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.5));
+            backdrop-filter: blur(2px); z-index: 1;
+        }
+
+        .quote-text {
+            position: relative; z-index: 2; color: #fff; font-size: 1.6rem; font-weight: 700;
+            text-align: center; line-height: 1.5; text-shadow: 0 2px 15px rgba(0,0,0,0.9);
+            user-select: text; width: 100%; padding: 40px 20px;
+            white-space: pre-wrap; word-wrap: break-word;
+        }
+
+        .footer-copyright {
+            margin-top: 30px; padding-bottom: 50px;
+            font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1px; font-family: sans-serif;
+        }
+
+        .action-bar { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #2a0033; border: none; padding: 14px 45px;
+            font-size: 1.1rem; font-weight: 800; border-radius: 50px;
+            cursor: pointer; box-shadow: 0 4px 20px rgba(255, 165, 0, 0.4);
+            transition: transform 0.1s;
+        }
+        .btn-restart:active { transform: scale(0.96); }
+
+        .share-icons { display: flex; gap: 25px; }
+        .icon-btn {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .icon-btn svg { width: 26px; height: 26px; fill: white; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+        .icon-btn:active { background: rgba(255,255,255,0.3); }
+        .icon-btn.line svg { fill: #06C755; }
+
+        #toast {
+            position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.95); color: #fff;
+            padding: 14px 28px; border-radius: 50px; font-size: 1rem; font-weight: bold;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            z-index: 200; box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        #toast.show { opacity: 1; }
+
+        #flash-bang { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: white; opacity: 0; pointer-events: none; z-index: 999; 
+            transition: opacity 0.5s ease-out; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-background"></div>
+    <div class="bg-overlay"></div>
+    <div id="flash-bang"></div>
+    <div id="toast">✅ 已複製到剪貼簿</div>
+    
+    <div id="preload-area"></div>
+
+    <div id="app-container">
+        <div id="home-view">
+            <header>
+                <div class="logo">BOOM!</div>
+                <div class="header-text">
+                    <div class="header-title">跨年 00:00 要傳什麼？</div>
+                    <div class="header-subtitle">點你想傳的人，我來幫你</div>
+                </div>
+            </header>
+
+            <div class="grid-container">
+                <div class="grid-item" onclick="selectRole('crush')"><div class="btn-icon">💘</div><div class="btn-text">曖昧</div></div>
+                <div class="grid-item" onclick="selectRole('ex')"><div class="btn-icon">💔</div><div class="btn-text">前任</div></div>
+                <div class="grid-item" onclick="selectRole('husband')"><div class="btn-icon">💍</div><div class="btn-text">老公</div></div>
+                <div class="grid-item" onclick="selectRole('wife')"><div class="btn-icon">💄</div><div class="btn-text">老婆</div></div>
+                <div class="grid-item" onclick="selectRole('bestie')"><div class="btn-icon">👯‍♀️</div><div class="btn-text">閨蜜</div></div>
+                <div class="grid-item" onclick="selectRole('buddy')"><div class="btn-icon">🍻</div><div class="btn-text">死黨</div></div>
+                <div class="grid-item" onclick="selectRole('colleague')"><div class="btn-icon">💼</div><div class="btn-text">同事</div></div>
+                <div class="grid-item" onclick="selectRole('boss')"><div class="btn-icon">💰</div><div class="btn-text">老闆</div></div>
+                <div class="grid-item" onclick="selectRole('parents')"><div class="btn-icon">🧧</div><div class="btn-text">爸媽</div></div>
+                <div class="grid-item" onclick="selectRole('enemy')"><div class="btn-icon">☠️</div><div class="btn-text">死對頭</div></div>
+                <div class="grid-item" onclick="selectRole('eng_quotes')"><div class="btn-icon">✨</div><div class="btn-text">英文</div></div>
+                <div class="grid-item random-btn" onclick="selectRole('random')"><div class="btn-icon">🎲</div><div class="btn-text">隨機抽</div></div>
+            </div>
+        </div>
+
+        <div id="charge-view" onmousedown="startCharge()" onmouseup="stopCharge()" ontouchstart="startCharge(event)" ontouchend="stopCharge()">
+            <div class="charge-glow"></div>
+            <div class="charge-circle" id="charge-circle"></div> 
+            <div class="charge-text">長按傳送祝福</div> 
+            <div class="finger-hint">👆</div>
+        </div>
+
+        <div id="result-modal">
+            <div class="role-hint-label" id="role-label">TO YOU</div>
+            <div class="result-card" id="capture-target">
+                <div class="card-overlay"></div> 
+                <div class="quote-text" id="result-text">Loading...</div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn-restart" onclick="resetApp()">再抽一張</button>
+                <div class="share-icons">
+                    <div class="icon-btn" onclick="copyText()"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></div>
+                    <div class="icon-btn line" onclick="shareLine()"><svg viewBox="0 0 24 24"><path d="M20.5 10.3c0-4.6-4.2-8.3-9.4-8.3-5.2 0-9.4 3.7-9.4 8.3 0 2.3 1 4.4 2.6 5.9 0.3 0.3 0.2 0.8 0.1 1.2-0.3 1.1-1.1 2.4-1.2 2.6 0 0 0 0.2 0.2 0.2 0.1 0 1.6-0.2 3.5-1.3 0.5-0.3 1-0.3 1.5-0.2 0.7 0.2 1.4 0.3 2.2 0.3 5.1 0 9.3-3.7 9.3-8.3z"/></svg></div>
+                    <div class="icon-btn" onclick="downloadImage()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></div>
+                </div>
+            </div>
+            <div class="footer-copyright">Powered by BOOM 2026</div>
+        </div>
+    </div>
+
+    <script>
+        const bgMap = {
+            crush: 'bg_love.png', ex: 'bg_love.png', husband: 'bg_love.png', wife: 'bg_love.png',
+            boss: 'bg_work.png', colleague: 'bg_work.png',
+            parents: 'bg_rich.png', eng_quotes: 'bg_rich.png', random: 'bg_rich.png',
+            bestie: 'bg_party.png', buddy: 'bg_party.png',
+            enemy: 'bg_cool.png'
+        };
+
+        const roleNameMap = {
+            crush: '💘 曖昧', ex: '💔 前任', husband: '💍 老公', wife: '💄 老婆',
+            bestie: '👯‍♀️ 閨蜜', buddy: '🍻 死黨', colleague: '💼 同事', boss: '💰 老闆',
+            parents: '🧧 爸媽', enemy: '☠️ 死對頭', eng_quotes: '✨ 2026', random: '🎲 幸運兒'
+        };
+
+        // 1. 強制預載所有圖片
+        const preloadArea = document.getElementById('preload-area');
+        Object.values(bgMap).forEach(src => {
+            const img = new Image();
+            img.src = src;
+            preloadArea.appendChild(img);
+        });
+
+        // 完整文案資料庫 (300句)
+        const quotesData = {
+            crush: [
+                "2026 想跟你的訊息框一直在置頂", "新年倒數的時候，能不能剛好想到我", "2026 想變成你每天早安第一個看到的人",
+                "明年開始，願意把喜歡你寫進行程表嗎", "2026 讓我名正言順當你跨年第一個祝福的人好不好", "倒數結束後，可以是你先說新年快樂嗎",
+                "2026 想跟你一起把曖昧變成明媚", "新年願望是把你變成我的", "2026 能不能讓我從備胎升正宮",
+                "明年開始，允許我每天都找理由跟你聊天嗎", "2026 想跟你一起把「晚安」變成「早點來接我」", "跨年煙火再漂亮，也不如你回我訊息那瞬間",
+                "2026 想跟你從曖昧走到未來", "新年第一個想分享的快樂，是你", "明年開始，願意讓我陪你熬夜跨年嗎",
+                "2026 想把喜歡你說得更大聲", "倒數 3 2 1 後，能不能是我們開始", "2026 讓我當你專屬的跨年驚喜",
+                "明年開始，允許我每天都偷偷喜歡你嗎", "2026 想跟你一起把曖昧變成答案", "新年快樂，順便問你要不要當我女／男朋友",
+                "2026 第一個想見的人，是你", "明年開始，願意把備註改成情侶暱稱嗎", "2026 想跟你一起把喜歡說出口",
+                "倒數結束後，第一個抱你的人想是我"
+            ],
+            ex: [
+                "2026 希望你過得很好，比跟我在一起時更好", "新年了，祝你找到真正對的人", "2026 我們都成為更好的人吧",
+                "謝謝你曾經讓我那麼認真喜歡過", "2026 希望你幸福，真的", "當年沒說出口的新年快樂，現在補上",
+                "2026 願你被世界溫柔以待", "謝謝你讓我學會了放手", "2026 我們都找到屬於自己的快樂吧",
+                "新年願望是我們都變成更好的人", "2026 祝你前程似錦，後來居上", "謝謝你曾經出現過",
+                "2026 希望你身邊的人比我更愛你", "當年沒送出的祝福，現在補上", "2026 我們都好好生活吧",
+                "謝謝你讓我成長", "2026 願你找到真正屬於你的幸福", "新年快樂，陌生人",
+                "2026 我們都成為曾經最想成為的人", "謝謝你讓我知道什麼是愛", "2026 祝你一切都好",
+                "當年沒說完的話，就到這裡吧", "2026 我們都往前走吧", "謝謝你曾經讓我那麼勇敢",
+                "2026 願我們都找到對的人"
+            ],
+            husband: [
+                "2026 繼續當我老公好不好", "新年第一個抱抱留給你", "2026 還要跟你一起跨無數個年",
+                "謝謝你讓我每天都像熱戀", "2026 繼續寵我當小公主", "老公新年快樂，愛你到 2026 之後",
+                "2026 還要跟你一起變老", "謝謝你讓我成為最幸福的人妻", "2026 繼續讓我當你的小尾巴",
+                "老公，跨年也要黏著你", "2026 還要跟你一起賴床到中午", "謝謝你把餘生都給了我",
+                "2026 繼續當我的專屬提款機跟抱抱機", "老公，2026 也要愛我最多", "2026 還要跟你一起吵架和好",
+                "謝謝你讓我每天都像新婚", "2026 繼續讓我當你手機第一順位", "老公，2026 也要第一個說愛你",
+                "2026 還要跟你一起養老", "謝謝你讓我這麼幸福", "2026 繼續當我一輩子的男朋友",
+                "老公，2026 也要被你寵壞", "2026 還要跟你一起看煙火", "謝謝你選擇了我",
+                "2026 繼續愛你到天荒地老"
+            ],
+            wife: [
+                "老婆 2026 也要被我寵上天", "新年第一個吻給你", "2026 繼續讓你當我掌上明珠",
+                "謝謝你嫁給我", "2026 還要繼續當你的人形抱枕", "老婆新年快樂，愛你到永遠",
+                "2026 繼續讓你當我手機桌面", "謝謝你讓我成為最幸福的老公", "2026 還要繼續給你轉帳寵你",
+                "老婆，2026 也要被我保護", "2026 繼續讓你為所欲為", "謝謝你讓我每天都想回家",
+                "2026 還要繼續當你專屬攝影師", "老婆，2026 也要被我愛到牙齒掉光", "2026 繼續讓你買買買",
+                "謝謝你讓我這麼幸福", "2026 還要繼續哄你睡覺", "老婆，2026 也要被我捧在手心",
+                "2026 繼續當你一輩子的男朋友", "謝謝你選擇了我", "2026 還要繼續給你安全感",
+                "老婆，2026 也要被我寵壞", "2026 繼續讓你當我女王", "謝謝你讓我擁有這麼棒的家",
+                "2026 繼續愛你到世界盡頭"
+            ],
+            bestie: [
+                "2026 也要一起變美變有錢", "閨蜜，2026 也要一起熬夜聊天", "2026 繼續當我一輩子的姐妹",
+                "謝謝你陪我走過所有低潮", "2026 也要一起買口紅買到手軟", "閨蜜，2026 也要一起瘋一起嗨",
+                "2026 繼續當我最堅強的後盾", "謝謝你永遠站在我這邊", "2026 也要一起變成更好的人",
+                "閨蜜，2026 也要一起拍照九宮格", "2026 繼續讓我當你手機備份", "謝謝你讓我這麼幸福",
+                "2026 也要一起吃香喝辣", "閨蜜，2026 也要一起罵渣男", "2026 繼續當我一輩子的閨蜜",
+                "謝謝你陪我長大", "2026 也要一起變老", "閨蜜，2026 也要一起發瘋",
+                "2026 繼續讓我們是對方最重要的人", "謝謝你永遠懂我", "2026 也要一起買包包",
+                "閨蜜，2026 也要一起旅行", "2026 繼續當我最美的姐妹", "謝謝你讓我做自己",
+                "2026 姐妹一生一起走"
+            ],
+            buddy: [
+                "2026 也要一起打遊戲到天亮", "兄弟，2026 也要一起喝酒吹牛", "2026 繼續當我一輩子的死黨",
+                "謝謝你陪我走過所有瘋狂", "2026 也要一起追妹／追漢", "兄弟，2026 也要一起扛事",
+                "2026 繼續當我最鐵的兄弟", "謝謝你永遠挺我", "2026 也要一起變有錢",
+                "兄弟，2026 也要一起開車兜风", "2026 繼續讓我們是對方最重要的人", "謝謝你讓我做自己",
+                "2026 也要一起看球到失眠", "兄弟，2026 也要一起發財", "2026 繼續當我一輩子的兄弟",
+                "謝謝你陪我長大", "2026 也要一起變老", "兄弟，2026 也要一起瘋",
+                "2026 繼續讓我們鐵到爆", "謝謝你永遠懂我", "2026 也要一起吃燒烤",
+                "兄弟，2026 也要一起打電動", "2026 繼續當我最鐵的兄弟", "謝謝你讓我這麼爽",
+                "2026 兄弟一生一起走"
+            ],
+            colleague: [
+                "2026 繼續一起搬磚但別搬到腰", "新年快樂，2026 別再被老闆點名", "2026 希望我們都升職加薪",
+                "謝謝你今年幫我擋了那麼多刀", "2026 繼續當我最可靠的戰友", "新年快樂，2026 別再加班",
+                "2026 希望我們都財源滾滾", "謝謝你今年陪我一起瘋狂趕工", "2026 繼續一起偷懶被抓包",
+                "新年快樂，2026 別再開會到天黑", "2026 希望我們都跳槽成功", "謝謝你今年借我那麼多充電線",
+                "2026 繼續一起吐槽老闆", "新年快樂，2026 別再被客戶搞瘋", "2026 希望我們都暴富離職",
+                "謝謝你今年陪我一起摸魚", "2026 繼續當我最棒的同事", "新年快樂，2026 別再寫週報",
+                "2026 希望我們都財富自由", "謝謝你今年幫我頂班", "2026 繼續一起八卦公司",
+                "新年快樂，2026 別再被 KPI 追著跑", "2026 希望我們都躺平也躺贏", "謝謝你今年陪我一起瘋",
+                "2026 繼續一起搬磚發財"
+            ],
+            boss: [
+                "2026 繼續帶我們飛吧老大", "老闆新年快樂，2026 多發獎金", "2026 希望跟著您繼續賺大錢",
+                "謝謝您今年給我們這麼多機會", "老闆，2026 也要被您照顧", "新年快樂，2026 多放假吧",
+                "2026 繼續跟著您混飯吃", "謝謝您今年這麼照顧我們", "老闆，2026 也要被您帶飛",
+                "新年快樂，2026 多漲薪水", "2026 希望公司越來越大", "謝謝您今年這麼包容我們",
+                "老闆，2026 也要被您罩", "新年快樂，2026 別再開會到半夜", "2026 希望跟著您發大財",
+                "謝謝您今年給我們這麼好福利", "老闆，2026 也要被您照顧", "新年快樂，2026 多發年終",
+                "2026 繼續跟著您混", "謝謝您今年這麼照顧我", "老闆，2026 也要被您帶飛",
+                "新年快樂，2026 多放假", "2026 希望公司越來越好", "謝謝您今年這麼信任我",
+                "老闆，2026 也要被您罩著"
+            ],
+            parents: [
+                "爸媽，2026 也要被我孝順", "新年快樂，謝謝你們養我這麼大", "2026 讓我多賺錢給你們花",
+                "爸媽，2026 也要被我寵", "謝謝你們讓我成為現在的我", "2026 帶你們去旅行",
+                "爸媽，2026 也要陪你們跨年", "謝謝你們永遠愛我", "2026 讓我多回家陪你們",
+                "爸媽，2026 也要被我照顧", "新年快樂，謝謝你們無條件愛我", "2026 讓你們過得比我還好",
+                "爸媽，2026 也要被我寵壞", "謝謝你們讓我這麼幸福", "2026 多賺錢給你們花",
+                "爸媽，2026 也要陪你們吃飯", "新年快樂，謝謝你們養我", "2026 讓你們退休享福",
+                "爸媽，2026 也要被我孝順", "謝謝你們讓我做自己", "2026 帶你們環遊世界",
+                "爸媽，2026 也要陪你們", "新年快樂，謝謝你們愛我", "2026 讓我多陪你們",
+                "爸媽，2026 也要被我寵"
+            ],
+            enemy: [
+                "2026 希望你比我慘一點", "新年快樂，別比我先脫單", "2026 希望你賺的比我少一點",
+                "恭喜你又老一歲", "2026 希望你繼續當我的陪襯", "新年快樂，別比我先升職",
+                "2026 希望你繼續輸給我", "恭喜你又單身一年", "2026 希望你繼續當我的對照組",
+                "新年快樂，別比我先暴富", "2026 希望你繼續看我發光", "恭喜你又輸給我一年",
+                "2026 希望你繼續當我的背景板", "新年快樂，別比我先找到幸福", "2026 希望你繼續羨慕我",
+                "恭喜你又老一歲還單身", "2026 希望你繼續當我的綠葉", "新年快樂，別比我先成功",
+                "2026 希望你繼續看我贏", "恭喜你又被我甩在後面", "2026 希望你繼續當我的對比組",
+                "新年快樂，別比我先找到另一半", "2026 希望你繼續羨慕我的生活", "恭喜你又輸了",
+                "2026 繼續看我贏吧"
+            ],
+            eng_quotes: [
+                "Cheers to 2026 – may it be our best yet", "New Year, new wins", "2026: Let’s make it iconic",
+                "Happy New Year – here’s to health, wealth, and happiness", "2026, please be kind",
+                "New year, same amazing you", "Here’s to 365 new chances", "2026: Bigger dreams, bolder moves",
+                "May your 2026 sparkle", "New year, new adventures", "2026: Let’s glow up together",
+                "Happy New Year – you deserve everything good", "2026 is yours", "New year, new magic",
+                "Here’s to love, laughter, and your best year yet", "2026: Make it count",
+                "Happy New Year – stay awesome", "2026: New year, new blessings", "May 2026 bring you peace and joy",
+                "New year, new beginnings", "2026: Let’s thrive", "Happy New Year – the best is coming",
+                "2026: Your time to shine", "New year, stronger you", "Here’s to an incredible 2026"
+            ],
+            random: [
+                "2026 願你暴富又脫單", "新年快樂，錢包鼓鼓愛情滿滿", "2026 牛轉乾坤", "2026 願你所願皆所得",
+                "新年快樂，萬事如意", "2026 財運亨通愛情順利", "2026 願你一切都好", "新年快樂，幸福安康",
+                "2026 好運連連", "2026 願你每天都開心", "新年快樂，平安喜樂", "2026 願你暴富",
+                "2026 脫單暴富樣樣行", "新年快樂，前程似錦", "2026 願你被世界溫柔以待", "2026 好運爆棚",
+                "新年快樂，財源滾滾", "2026 願你心想事成", "2026 願你每天都被愛包圍", "新年快樂，幸福美滿",
+                "2026 願你暴富脫單又好運", "2026 願你一切順利", "新年快樂，笑口常開", "2026 願你天天開心",
+                "2026 願你新年快樂，永遠快樂"
+            ]
+        };
+
+        function getQuote(id) {
+            const list = quotesData[id] || quotesData['random'];
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        let currentRole = '';
+        let chargeTimer = null;
+        let progress = 0;
+        const chargeCircle = document.getElementById('charge-circle');
+        const body = document.body;
+        const appBg = document.getElementById('app-background');
+
+        function selectRole(role) {
+            currentRole = role;
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('charge-view').style.display = 'flex';
+            progress = 0;
+            chargeCircle.style.setProperty('--progress', '0%');
+        }
+
+        function startCharge(e) {
+            if(e) e.preventDefault();
+            chargeTimer = setInterval(() => {
+                progress += 3;
+                chargeCircle.style.setProperty('--progress', `${progress}%`);
+                body.classList.add('shaking');
+                if (navigator.vibrate) navigator.vibrate(30);
+
+                if (progress >= 100) {
+                    completeCharge();
+                }
+            }, 30);
+        }
+
+        function stopCharge() {
+            clearInterval(chargeTimer);
+            body.classList.remove('shaking');
+            if (progress < 100) {
+                progress = 0;
+                chargeCircle.style.setProperty('--progress', '0%');
+            }
+        }
+
+        // 關鍵邏輯：使用圖片預載確保無縫切換
+        function completeCharge() {
+            clearInterval(chargeTimer);
+            body.classList.remove('shaking');
+            
+            // 1. 白光閃爍 (遮掩)
+            document.getElementById('flash-bang').style.opacity = 1;
+
+            const bgFile = bgMap[currentRole] || 'boom_bk.png';
+            const newBgUrl = `./${bgFile}`;
+
+            // 2. 建立暫時圖片，等待載入完成
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                // 3. 圖片載入完成，執行切換
+                confetti({ particleCount: 180, spread: 100, origin: { y: 0.6 } });
+                
+                // 替換背景 (背景層 + 卡片層)
+                appBg.style.backgroundImage = `url('${newBgUrl}')`;
+                document.getElementById('capture-target').style.backgroundImage = `url('${newBgUrl}')`;
+
+                // 替換文字
+                document.getElementById('result-text').innerText = getQuote(currentRole);
+                document.getElementById('role-label').innerText = roleNameMap[currentRole] || 'TO YOU';
+
+                // 切換介面
+                document.getElementById('charge-view').style.display = 'none';
+                document.getElementById('result-modal').style.display = 'flex';
+
+                // 4. 淡出白光
+                setTimeout(() => {
+                    document.getElementById('flash-bang').style.opacity = 0;
+                }, 100);
+            };
+            
+            // 開始載入圖片
+            tempImg.src = newBgUrl;
+        }
+
+        function resetApp() {
+            document.getElementById('result-modal').style.display = 'none';
+            document.getElementById('home-view').style.display = 'flex'; 
+            document.getElementById('app-background').style.backgroundImage = "url('./boom_bk.png')";
+        }
+
+        function copyText() {
+            const text = document.getElementById('result-text').innerText;
+            if (!navigator.clipboard) { alert("瀏覽器安全性限制，請手動複製！"); return; }
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        function shareLine() {
+            const text = document.getElementById('result-text').innerText;
+            window.location.href = `https://line.me/R/msg/text/?BOOM! 2026 祝福：${encodeURIComponent(text)}`;
+        }
+
+        function downloadImage() {
+            const element = document.getElementById('capture-target');
+            html2canvas(element, { backgroundColor: null, scale: 3, logging: false, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `boom_2026_${currentRole}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
