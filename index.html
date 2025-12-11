@@ -1,9 +1,16 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>BOOM! 2026 祝福產生器</title>
+
+    <!-- Google Analytics GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LL0NK4ZD78"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-LL0NK4ZD78');
+    </script>
 
     <!-- SEO / 社群預覽（LINE / FB 等會用這些） -->
     <meta name="description" content="跨年 00:00 要傳什麼？點你想傳的人，我來幫你生一段客製祝福。">
@@ -11,39 +18,51 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="BOOM! 2026 祝福產生器">
     <meta property="og:description" content="跨年 00:00 要傳什麼？點你想傳的人，我來幫你生一段客製祝福。">
+    <meta property="og:url" content="https://boom-2026-card.netlify.app">
+    <meta property="og:image" content="https://boom-2026-card.netlify.app/boom_bk.png">
+    <meta property="og:locale" content="zh_TW">
+
     <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "BOOM! 2026 祝福產生器",
-  "url": "https://boom-2026-card.netlify.app",
-  "applicationCategory": "LifestyleApplication",
-  "operatingSystem": "All",
-  "inLanguage": "zh-TW",
-  "isAccessibleForFree": true,
-  "description": "一款專為 2026 跨年設計的線上祝福語產生器。依照對象（曖昧、前任、老闆、朋友等）一鍵生成客製化文案，還能產出精美截圖卡片，直接分享給對方。",
-  "image": "https://boom-2026-card.netlify.app/boom_bk.png",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "TWD"
-  },
-  "featureList": [
-    "依曖昧、前任、老闆、爸媽、死黨等不同對象，一鍵生成祝福語",
-    "內建 300 句以上 2026 跨年祝福文案",
-    "支援 LINE 一鍵分享與分享網址複製",
-    "自動產生 9:16 精美祝福卡，可下載分享"
-  ],
-  "keywords": [
-    "跨年祝福",
-    "2026 祝福語",
-    "跨年簡訊範本",
-    "LINE 跨年訊息",
-    "新年快樂文案",
-    "客製祝福產生器"
-  ]
-}
-</script>
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "BOOM! 2026 祝福產生器",
+      "url": "https://boom-2026-card.netlify.app",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "All",
+      "inLanguage": "zh-TW",
+      "isAccessibleForFree": true,
+      "description": "一款專為 2026 跨年設計的線上祝福語產生器。依照對象（曖昧、前任、老闆、朋友等）一鍵生成客製化文案，還能產出精美截圖卡片，直接分享給對方。",
+      "image": "https://boom-2026-card.netlify.app/boom_bk.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "TWD"
+      },
+      "featureList": [
+        "依曖昧、前任、老闆、爸媽、死黨等不同對象，一鍵生成祝福語",
+        "內建 300 句以上 2026 跨年祝福文案",
+        "支援 LINE 一鍵分享與分享網址複製",
+        "自動產生 9:16 精美祝福卡，可下載分享"
+      ],
+      "keywords": [
+        "跨年祝福",
+        "2026 祝福語",
+        "跨年簡訊範本",
+        "LINE 跨年訊息",
+        "新年快樂文案",
+        "客製祝福產生器"
+      ]
+    }
+    </script>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        /* 你的 CSS 保持原樣 */
+    </style>
+</head>
 
     <!-- 如果之後有「12 宮格預覽圖」，可以把這個 og:image 換成那張圖 -->
     <meta property="og:url" content="https://boom-2026-card.netlify.app">
