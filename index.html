@@ -24,12 +24,11 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="2026 新年祝福產生器 | 你的跨年詞窮救星">
   <meta property="og:description" content="別再傳罐頭訊息了！這裡有給曖昧對象的「撩人金句」、給老闆的「保命文案」、還有給前任的「核彈級祝福」。點擊立即生成！">
-  <meta property="og:url" content="https://boom-2026-card.netlify.app">
-  <!-- 12 宮格預覽圖：建議之後換成 1200x630（OG 標準） -->
-<meta property="og:image" content="https://boom-2026-card.netlify.app/og-newyear-2026.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
- <meta property="og:locale" content="zh_TW">
+  <!-- 建議加尾斜線，降低平台快取造成的預覽不一致 -->
+  <meta property="og:url" content="https://boom-2026-card.netlify.app/">
+  <!-- 12 宮格預覽圖（建議最終做成 1200x630；未確定尺寸前先不宣告 width/height） -->
+  <meta property="og:image" content="https://boom-2026-card.netlify.app/og-newyear-2026.png">
+  <meta property="og:locale" content="zh_TW">
 
   <!-- JSON-LD 結構化資料 -->
   <script type="application/ld+json">
@@ -37,13 +36,13 @@
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": "2026 新年祝福產生器 (BOOM!)",
-    "url": "https://boom-2026-card.netlify.app",
+    "url": "https://boom-2026-card.netlify.app/",
     "applicationCategory": "LifestyleApplication",
     "operatingSystem": "All",
     "inLanguage": "zh-TW",
     "isAccessibleForFree": true,
     "description": "一款專為 2026 跨年設計的線上祝福語產生器。依照對象（曖昧、前任、老闆、朋友等）一鍵生成客製化文案。",
-    "image": "https://boom-2026-card.netlify.app/boom_bk.png",
+    "image": "https://boom-2026-card.netlify.app/og-newyear-2026.png",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -203,13 +202,11 @@
       outline: none;
     }
 
-    /* 按下瞬間（手指按著） */
     .grid-item:active{
       transform: scale(0.95);
       background: var(--tile-active-bg);
     }
 
-    /* 點擊後 0.26 秒保留明確選取感 */
     .grid-item.is-selected{
       transform: scale(0.96);
       box-shadow: var(--tile-glow);
@@ -234,12 +231,12 @@
       display:none;
       position: fixed;
       inset: 0;
-      height: 100dvh;          /* fix(mobile): iOS 動態視窗高度穩定 */
+      height: 100dvh;
       z-index: 50;
       flex-direction: column;
       justify-content:center;
       align-items:center;
-      touch-action: none;      /* fix(mobile): 避免長按/拖動引發頁面捲動 */
+      touch-action: none;
     }
 
     .charge-circle{
@@ -499,6 +496,12 @@
     .seo-faq h1{ font-size: 1rem; margin: 12px 0 4px; }
     .seo-faq h2{ font-size: 0.9rem; margin: 10px 0 4px; }
     .seo-faq p{ margin: 4px 0 8px; line-height: 1.5; }
+
+    /* ✅ 讓 SEO/FAQ 區可選取、可複製（不影響上方互動區） */
+    .seo-faq, .seo-faq *{
+      user-select: text;
+      -webkit-user-select: text;
+    }
   </style>
 </head>
 
@@ -610,11 +613,11 @@
       parents: '🧧 爸媽', enemy: '☠️ 死對頭', eng_quotes: '✨ 2026', random: '🎲 幸運兒'
     };
 
-    // 預載背景圖（避免切換閃爍）
+    // 預載背景圖（避免切換閃爍）— ✅ 統一加 ./，路徑更穩
     const preloadArea = document.getElementById('preload-area');
     Object.values(bgMap).forEach(src => {
       const img = new Image();
-      img.src = src;
+      img.src = `./${src}`;
       preloadArea.appendChild(img);
     });
 
@@ -776,14 +779,13 @@
     let currentRole = '';
     let chargeTimer = null;
     let progress = 0;
-    let isCompleting = false; // 防止 completeCharge 重入
+    let isCompleting = false;
 
     const chargeCircle = document.getElementById('charge-circle');
     const chargeView = document.getElementById('charge-view');
     const appBg = document.getElementById('app-background');
     const siteUrl = window.location.origin + window.location.pathname;
 
-    // 12 宮格：外框 glow + 微縮放 + 0.26 秒延遲切畫面
     const grid = document.getElementById('role-grid');
     let lastSelectedTile = null;
 
@@ -818,7 +820,6 @@
       }, 260);
     });
 
-    // fix(mobile): pointer events，避免 iOS touch/mouse 重複觸發
     function startCharge(e){
       if (e) e.preventDefault();
       if (chargeTimer || isCompleting) return;
@@ -864,11 +865,10 @@
       }
       chargeView.classList.remove('shaking');
 
-      // ✅ 修正白屏：閃一下就淡出（不等待圖片 onload）
       const flash = document.getElementById('flash-bang');
       flash.style.opacity = 0.65;
       setTimeout(() => { flash.style.opacity = 0; }, 120);
-      setTimeout(() => { flash.style.opacity = 0; }, 400); // 保險
+      setTimeout(() => { flash.style.opacity = 0; }, 400);
 
       const bgFile = bgMap[currentRole] || 'boom_bk.png';
       const newBgUrl = `./${bgFile}`;
@@ -887,7 +887,6 @@
         document.getElementById('result-modal').style.display = 'flex';
       };
 
-      // 若圖檔載入失敗，也不要卡住：直接用既有背景顯示結果
       tempImg.onerror = () => {
         document.getElementById('result-text').innerText = getQuote(currentRole);
         document.getElementById('role-label').innerText = roleNameMap[currentRole] || 'TO YOU';
