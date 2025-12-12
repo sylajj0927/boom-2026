@@ -63,14 +63,14 @@
     <!-- 截圖與煙火特效 -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
+
     <style>
         :root {
             --glass-border: 1px solid rgba(255, 255, 255, 0.25);
             --dark-glass-bg: rgba(20, 10, 30, 0.65);
             --gold: #FFD700;
             --mobile-width: 480px;
-            --base-bg-color: #2b0030; 
+            --base-bg-color: #2b0030;
         }
 
         * {
@@ -85,6 +85,7 @@
             padding: 0;
             width: 100%;
             min-height: 100vh;
+            min-height: 100dvh;
             overflow-x: hidden;
             overflow-y: auto;
             background-color: #000;
@@ -98,7 +99,7 @@
         #app-background {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: var(--mobile-width); height: 100%;
-            background-image: url('./boom_bk.png'); 
+            background-image: url('./boom_bk.png');
             background-color: var(--base-bg-color);
             background-size: cover; background-position: center bottom;
             background-repeat: no-repeat; z-index: -2;
@@ -134,9 +135,7 @@
             list-style: none;
         }
 
-        .seo-faq summary::-webkit-details-marker {
-            display: none;
-        }
+        .seo-faq summary::-webkit-details-marker { display: none; }
 
         .seo-faq h1 {
             font-size: 1rem;
@@ -192,7 +191,7 @@
             border: var(--glass-border); backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            box-sizing: border-box; 
+            box-sizing: border-box;
         }
 
         .grid-item {
@@ -215,8 +214,15 @@
 
         /* === 集氣畫面 === */
         #charge-view {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 50; flex-direction: column; justify-content: center; align-items: center;
+            display: none;
+            position: fixed;
+            inset: 0;
+            height: 100dvh;
+            z-index: 50;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
         }
 
         .charge-circle {
@@ -226,7 +232,7 @@
             mask: radial-gradient(transparent 64%, black 65%);
             transform: translateZ(0); z-index: 1;
         }
-        
+
         .charge-glow {
             position: absolute; width: 240px; height: 240px;
             border-radius: 50%; box-shadow: 0 0 40px rgba(255, 255, 255, 0.4);
@@ -236,18 +242,20 @@
         .charge-text {
             position: relative; z-index: 10; font-size: 1.4rem; font-weight: 900; color: #fff;
             text-shadow: 0 0 15px rgba(255,255,255,0.9); letter-spacing: 2px;
-            text-align: center; pointer-events: none; 
+            text-align: center; pointer-events: none;
         }
 
         .finger-hint {
             position: absolute; bottom: 25%; font-size: 3.5rem;
             filter: drop-shadow(0 0 15px rgba(255,255,255,0.8));
             animation: bounce 1.5s infinite; z-index: 2;
+            pointer-events: none;
         }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(15px); } }
 
+        /* shaking 改掛在 #charge-view，不要掛 body */
         .shaking { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
-        @keyframes shake { 
+        @keyframes shake {
             10%, 90% { transform: translate3d(-2px, 0, 0); }
             20%, 80% { transform: translate3d(4px, 0, 0); }
             30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
@@ -256,17 +264,25 @@
 
         /* === 結果彈窗 === */
         #result-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            position: fixed;
+            inset: 0;
+            height: 100dvh;
             background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            z-index: 100; flex-direction: column; justify-content: center; align-items: center;
-            overflow-y: auto; padding: 20px 0;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 20px 0;
             animation: modalFadeIn 0.4s ease-out;
         }
         @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
         .role-hint-label {
-            color: #FFD700; font-size: 1.2rem; font-weight: bold; 
+            color: #FFD700; font-size: 1.2rem; font-weight: bold;
             margin-top: 80px; margin-bottom: 25px;
             text-shadow: 0 2px 10px rgba(0,0,0,0.8); letter-spacing: 2px; text-align: center;
             animation: slideDown 0.5s ease;
@@ -275,7 +291,7 @@
 
         .result-card {
             width: 88%; max-width: 340px; aspect-ratio: 9/16; padding: 0;
-            background-image: url('./boom_bk.png'); 
+            background-image: url('./boom_bk.png');
             background-color: var(--base-bg-color);
             background-size: cover; background-position: center;
             border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.6);
@@ -335,10 +351,10 @@
         }
         #toast.show { opacity: 1; }
 
-        #flash-bang { 
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-            background: white; opacity: 0; pointer-events: none; z-index: 999; 
-            transition: opacity 0.5s ease-out; 
+        #flash-bang {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: white; opacity: 0; pointer-events: none; z-index: 999;
+            transition: opacity 0.5s ease-out;
         }
     </style>
 </head>
@@ -348,7 +364,7 @@
     <div class="bg-overlay"></div>
     <div id="flash-bang"></div>
     <div id="toast">✅ 已複製到剪貼簿</div>
-    
+
     <div id="preload-area"></div>
 
     <div id="app-container">
@@ -377,17 +393,23 @@
             </div>
         </div>
 
-        <div id="charge-view" onmousedown="startCharge()" onmouseup="stopCharge()" ontouchstart="startCharge(event)" ontouchend="stopCharge()">
+        <div id="charge-view"
+             onmousedown="startCharge()"
+             onmouseup="stopCharge()"
+             onmouseleave="stopCharge()"
+             ontouchstart="startCharge(event)"
+             ontouchend="stopCharge()"
+             ontouchcancel="stopCharge()">
             <div class="charge-glow"></div>
-            <div class="charge-circle" id="charge-circle"></div> 
-            <div class="charge-text">長按傳送祝福</div> 
+            <div class="charge-circle" id="charge-circle"></div>
+            <div class="charge-text">長按傳送祝福</div>
             <div class="finger-hint">👆</div>
         </div>
 
         <div id="result-modal">
             <div class="role-hint-label" id="role-label">TO YOU</div>
             <div class="result-card" id="capture-target">
-                <div class="card-overlay"></div> 
+                <div class="card-overlay"></div>
                 <div class="quote-text" id="result-text">Loading...</div>
             </div>
 
@@ -415,7 +437,7 @@
             <div class="footer-copyright">Powered by BOOM 2026</div>
         </div>
     </div>
-    
+
     <!-- 2026 跨年祝福說明區（SEO / GEO 友善，可給人類看到） -->
     <section class="seo-faq">
         <details>
@@ -481,7 +503,6 @@
                 "2026 第一個想見的人，是你", "明年開始，願意把備註改成情侶暱稱嗎", "2026 想跟你一起把喜歡說出口",
                 "倒數結束後，第一個抱你的人想是我"
             ],
-
             ex: [
                 "2026 希望你過得很好，比跟我在一起時更好", "新年了，祝你找到真正對的人", "2026 我們都成為更好的人吧",
                 "謝謝你曾經讓我那麼認真喜歡過", "2026 希望你幸福，真的", "當年沒說出口的新年快樂，現在補上",
@@ -493,7 +514,6 @@
                 "當年沒說完的話，就到這裡吧", "2026 我們都往前走吧", "謝謝你曾經讓我那麼勇敢",
                 "2026 願我們都找到對的人"
             ],
-
             husband: [
                 "2026 繼續當我老公好不好", "新年第一個抱抱留給你", "2026 還要跟你一起跨無數個年",
                 "謝謝你讓我每天都像熱戀", "2026 繼續寵我當小公主", "老公新年快樂，愛你到 2026 之後",
@@ -511,7 +531,6 @@
                 "新年快樂！2026 能不能不要再說「這我媽都不管我」", "老公，2026 你要不要重新追我一次？我保證這次不答應",
                 "2026 希望你繼續愛我，我也繼續忍你", "老公，2026 我們繼續相愛相殺"
             ],
-
             wife: [
                 "老婆 2026 也要被我寵上天", "新年第一個吻給你", "2026 繼續讓你當我掌上明珠",
                 "謝謝你嫁給我", "2026 還要繼續當你的人形抱枕", "老婆新年快樂，愛你到永遠",
@@ -526,7 +545,6 @@
                 "老婆，2026 能不能把『隨便』從人生字典裡刪除",
                 "新年快樂！2026 可不可以不要再說『你決定就好』然後事後嫌棄"
             ],
-
             bestie: [
                 "2026 也要一起變美變有錢", "閨蜜，2026 也要一起熬夜聊天", "2026 繼續當我一輩子的姐妹",
                 "謝謝你陪我走過所有低潮", "2026 也要一起買口紅買到手軟", "閨蜜，2026 也要一起瘋一起嗨",
@@ -538,7 +556,6 @@
                 "閨蜜，2026 也要一起旅行", "2026 繼續當我最美的姐妹", "謝謝你讓我做自己",
                 "2026 姐妹一生一起走"
             ],
-
             buddy: [
                 "2026 也要一起打遊戲到天亮", "兄弟，2026 也要一起喝酒吹牛", "2026 繼續當我一輩子的死黨",
                 "謝謝你陪我走過所有瘋狂", "2026 也要一起追妹／追漢", "兄弟，2026 也要一起扛事",
@@ -550,7 +567,6 @@
                 "兄弟，2026 也要一起打電動", "2026 繼續當我最鐵的兄弟", "謝謝你讓我這麼爽",
                 "2026 兄弟一生一起走"
             ],
-
             colleague: [
                 "2026 繼續一起搬磚但別搬到腰", "新年快樂，2026 別再被老闆點名", "2026 希望我們都升職加薪",
                 "謝謝你今年幫我擋了那麼多刀", "2026 繼續當我最可靠的戰友", "新年快樂，2026 別再加班",
@@ -562,7 +578,6 @@
                 "新年快樂，2026 別再被 KPI 追著跑", "2026 希望我們都躺平也躺贏", "謝謝你今年陪我一起瘋",
                 "2026 繼續一起搬磚發財"
             ],
-
             boss: [
                 "2026 繼續帶我們飛吧老大", "老闆新年快樂，2026 多發獎金", "2026 希望跟著您繼續賺大錢",
                 "謝謝您今年給我們這麼多機會", "老闆，2026 也要被您照顧", "新年快樂，2026 多放假吧",
@@ -581,7 +596,6 @@
                 "新年快樂！2026 拜託讓我們準時下班一次就好", "老闆，2026 能不能把「再努力一點」改成「再加薪一點」",
                 "新年快樂！2026 別再說「這是成長機會」了，直接給錢就是最大成長", "老闆，2026 您永遠是對的，我們永遠是工具人"
             ],
-
             parents: [
                 "爸媽，2026 也要被我孝順", "新年快樂，謝謝你們養我這麼大", "2026 讓我多賺錢給你們花",
                 "爸媽，2026 也要被我寵", "謝謝你們讓我成為現在的我", "2026 帶你們去旅行",
@@ -593,7 +607,6 @@
                 "爸媽，2026 也要陪你們", "新年快樂，謝謝你們愛我", "2026 讓我多陪你們",
                 "爸媽，2026 也要被我寵"
             ],
-
             enemy: [
                 "2026 希望你比我慘一點", "新年快樂，別比我先脫單", "2026 希望你賺的比我少一點",
                 "恭喜你又老一歲", "2026 希望你繼續當我的陪襯", "新年快樂，別比我先升職",
@@ -605,7 +618,6 @@
                 "新年快樂，別比我先找到另一半", "2026 希望你繼續羨慕我的生活", "恭喜你又輸了",
                 "2026 繼續看我贏吧"
             ],
-
             eng_quotes: [
                 "Cheers to 2026 – may it be our best yet", "New Year, new wins", "2026: Let’s make it iconic",
                 "Happy New Year – here’s to health, wealth, and happiness", "2026, please be kind",
@@ -617,7 +629,6 @@
                 "New year, new beginnings", "2026: Let’s thrive", "Happy New Year – the best is coming",
                 "2026: Your time to shine", "New year, stronger you", "Here’s to an incredible 2026"
             ],
-
             random: [
                 "2026 願你暴富又脫單", "新年快樂，錢包鼓鼓愛情滿滿", "2026 牛轉乾坤", "2026 願你所願皆所得",
                 "新年快樂，萬事如意", "2026 財運亨通愛情順利", "2026 願你一切都好", "新年快樂，幸福安康",
@@ -638,7 +649,7 @@
         let chargeTimer = null;
         let progress = 0;
         const chargeCircle = document.getElementById('charge-circle');
-        const body = document.body;
+        const chargeView = document.getElementById('charge-view');
         const appBg = document.getElementById('app-background');
         const siteUrl = window.location.origin + window.location.pathname;
 
@@ -652,10 +663,14 @@
 
         function startCharge(e) {
             if (e) e.preventDefault();
+
+            // ✅ 防止 interval 疊加（手機非常常見）
+            clearInterval(chargeTimer);
+
             chargeTimer = setInterval(() => {
                 progress += 3;
                 chargeCircle.style.setProperty('--progress', `${progress}%`);
-                body.classList.add('shaking');
+                chargeView.classList.add('shaking');
                 if (navigator.vibrate) navigator.vibrate(30);
 
                 if (progress >= 100) {
@@ -666,7 +681,7 @@
 
         function stopCharge() {
             clearInterval(chargeTimer);
-            body.classList.remove('shaking');
+            chargeView.classList.remove('shaking');
             if (progress < 100) {
                 progress = 0;
                 chargeCircle.style.setProperty('--progress', '0%');
@@ -676,8 +691,8 @@
         // 使用圖片預載確保無縫切換
         function completeCharge() {
             clearInterval(chargeTimer);
-            body.classList.remove('shaking');
-            
+            chargeView.classList.remove('shaking');
+
             // 1. 白光閃爍 (遮掩)
             document.getElementById('flash-bang').style.opacity = 1;
 
@@ -689,7 +704,7 @@
             tempImg.onload = () => {
                 // 3. 圖片載入完成，執行切換
                 confetti({ particleCount: 180, spread: 100, origin: { y: 0.6 } });
-                
+
                 // 替換背景 (背景層 + 卡片層)
                 appBg.style.backgroundImage = `url('${newBgUrl}')`;
                 document.getElementById('capture-target').style.backgroundImage = `url('${newBgUrl}')`;
@@ -707,14 +722,14 @@
                     document.getElementById('flash-bang').style.opacity = 0;
                 }, 100);
             };
-            
+
             // 開始載入圖片
             tempImg.src = newBgUrl;
         }
 
         function resetApp() {
             document.getElementById('result-modal').style.display = 'none';
-            document.getElementById('home-view').style.display = 'flex'; 
+            document.getElementById('home-view').style.display = 'flex';
             document.getElementById('app-background').style.backgroundImage = "url('./boom_bk.png')";
         }
 
