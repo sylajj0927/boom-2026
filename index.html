@@ -570,8 +570,8 @@
   <div id="more-sheet" role="dialog" aria-modal="true" aria-label="更多功能">
     <div class="more-title">更多</div>
     <div class="more-actions">
-      <button class="more-btn" onclick="shareLineText()">LINE 分享文字</button>
-      <button class="more-btn" onclick="downloadImage()">儲存圖片（下載）</button>
+      <button class="more-btn" onclick="lineShareText()">LINE 分享文字</button>
+      <button class="more-btn" onclick="saveImage()">儲存圖片（下載）</button>
       <button class="more-btn secondary" onclick="closeMore()">取消</button>
     </div>
   </div>
@@ -626,7 +626,7 @@
             <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
           </div>
 
-          <!-- 分享文字（原生分享；不支援就複製文字+網址） -->
+          <!-- 分享文字 -->
           <div class="icon-btn" onclick="shareText()" title="分享文字">
             <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.03-.47-.09-.7l7-4.11c.54.5 1.25.81 2.09.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.03.47.09.7l-7 4.11C7.54 9.31 6.83 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.83 0 1.54-.31 2.09-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92S21 19.63 21 18.08s-1.34-3-3-3z"/></svg>
           </div>
@@ -698,6 +698,38 @@
         role_name: roleNameMap[currentRole] || currentRole || '(none)',
         ...extra
       };
+    }
+
+    function baseCapabilityPayload() {
+      const ua = navigator.userAgent || '';
+      const inApp = /Line|FBAN|FBAV|Instagram|Twitter|TikTok/i.test(ua);
+      return {
+        has_web_share: !!navigator.share,
+        has_can_share: !!navigator.canShare,
+        in_app: !!inApp
+      };
+    }
+
+    // =========================
+    // Clipboard fallback（更穩）
+    // =========================
+    function fallbackCopyTextToClipboard(text) {
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      }catch(e){
+        return false;
+      }
     }
 
     // 預載背景圖（避免切換閃爍）— ✅ 統一加 ./，路徑更穩
@@ -902,7 +934,8 @@
       // ✅ GA：記錄 12 宮格點擊（哪一格最多人點）
       gaEvent('select_role', {
         role_id: role,
-        role_name: roleNameMap[role] || role
+        role_name: roleNameMap[role] || role,
+        ...baseCapabilityPayload()
       });
 
       clearSelectedTile();
@@ -961,7 +994,9 @@
       chargeView.classList.remove('shaking');
 
       // ✅ GA：抽到祝福（完成長按）
-      gaEvent('generate_quote', currentRolePayload());
+      gaEvent('generate_quote', currentRolePayload({
+        ...baseCapabilityPayload()
+      }));
 
       const flash = document.getElementById('flash-bang');
       flash.style.opacity = 0.65;
@@ -997,7 +1032,9 @@
 
     function resetApp(){
       // ✅ GA：再抽一張
-      gaEvent('restart', currentRolePayload());
+      gaEvent('restart', currentRolePayload({
+        ...baseCapabilityPayload()
+      }));
 
       document.getElementById('result-modal').style.display = 'none';
       document.getElementById('home-view').style.display = 'flex';
@@ -1019,6 +1056,11 @@
     // More sheet controls
     // =========================
     function openMore(){
+      // ✅ GA：開啟更多
+      gaEvent('open_more', currentRolePayload({
+        ...baseCapabilityPayload()
+      }));
+
       document.getElementById('more-backdrop').style.display = 'block';
       document.getElementById('more-sheet').style.display = 'block';
     }
@@ -1031,63 +1073,108 @@
     // Share helpers
     // =========================
     function copyText(){
-      // ✅ GA：點擊 copy
-      gaEvent('click_copy', currentRolePayload({ content_type: 'text' }));
-
       const text = document.getElementById('result-text').innerText;
-      if (!navigator.clipboard){
-        alert("瀏覽器安全性限制，請手動複製！");
+
+      // ✅ GA：複製文字
+      gaEvent('copy_text', currentRolePayload({
+        ...baseCapabilityPayload(),
+        method: navigator.clipboard?.writeText ? 'clipboard_api' : 'textarea_fallback'
+      }));
+
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("✅ 已複製到剪貼簿");
+        }).catch(() => {
+          const ok = fallbackCopyTextToClipboard(text);
+          if (ok) showToast("✅ 已複製到剪貼簿");
+          else alert("瀏覽器限制，請手動複製文字。");
+        });
         return;
       }
-      navigator.clipboard.writeText(text).then(() => {
-        showToast("✅ 已複製到剪貼簿");
-      });
+
+      const ok = fallbackCopyTextToClipboard(text);
+      if (ok) showToast("✅ 已複製到剪貼簿");
+      else alert("瀏覽器限制，請手動複製文字。");
     }
 
-    // 分享文字（優先用 navigator.share；不支援就複製文字+網址）
+    // 分享文字（優先 navigator.share；不支援就複製文字+網址）
     function shareText(){
       const text = document.getElementById('result-text').innerText;
-      const shareText = text + "\n\n" + siteUrl;
+      const sharePack = text + "\n\n" + siteUrl;
 
-      // ✅ GA：分享文字
+      const canNativeShare = !!navigator.share;
+
+      // ✅ GA：分享文字（兩條路徑都算 share_text）
       gaEvent('share_text', currentRolePayload({
-        method: (navigator.share ? 'native' : 'fallback'),
-        content_type: 'text',
+        ...baseCapabilityPayload(),
+        method: canNativeShare ? 'web_share' : 'copy_fallback',
         has_url: true
       }));
 
-      if (navigator.share){
+      if (canNativeShare){
         navigator.share({
           title: 'BOOM! 2026 祝福產生器',
           text: text,
           url: siteUrl
         }).catch(() => {});
-      } else if (navigator.clipboard){
-        navigator.clipboard.writeText(shareText).then(() => {
+        return;
+      }
+
+      // fallback：複製「祝福＋網址」
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(sharePack).then(() => {
           showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
+        }).catch(() => {
+          const ok = fallbackCopyTextToClipboard(sharePack);
+          if (ok) showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
+          else alert("您的裝置不支援一鍵分享，請手動複製以下內容：\n\n" + sharePack);
         });
       } else {
-        alert("您的裝置不支援一鍵分享，請手動複製以下內容分享給朋友：\n\n" + shareText);
+        const ok = fallbackCopyTextToClipboard(sharePack);
+        if (ok) showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
+        else alert("您的裝置不支援一鍵分享，請手動複製以下內容：\n\n" + sharePack);
       }
     }
 
-    // 產生圖片 Blob（給分享圖片 & 下載重用）
+    // 產生圖片 Blob（給分享圖片 & 儲存重用）
     async function buildPngBlob(){
       const element = document.getElementById('capture-target');
-      const canvas = await html2canvas(element, { backgroundColor: null, scale: 3, logging: false, useCORS: true });
+      const canvas = await html2canvas(element, {
+        backgroundColor: null,
+        scale: 3,
+        logging: false,
+        useCORS: true
+      });
       return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    }
+
+    function canShareFilesSafely(file){
+      try{
+        return !!navigator.share && !!navigator.canShare && navigator.canShare({ files: [file] });
+      }catch(e){
+        return false;
+      }
     }
 
     // 分享圖片（優先）：Web Share Level 2（files）
     async function shareImage(){
       closeMore();
 
+      // ✅ GA：分享圖片（意圖）
+      gaEvent('share_image', currentRolePayload({
+        ...baseCapabilityPayload(),
+        intent: 'image'
+      }));
+
       let blob;
       try{
         blob = await buildPngBlob();
       }catch(e){
-        // ✅ GA：分享圖片失敗（render error）
-        gaEvent('share_image', currentRolePayload({ method: 'error', content_type: 'image' }));
+        showToast("⚠️ 產生圖片失敗，請稍後再試");
+        return;
+      }
+
+      if (!blob){
         showToast("⚠️ 產生圖片失敗，請稍後再試");
         return;
       }
@@ -1095,56 +1182,62 @@
       const fileName = `boom_2026_${currentRole || 'card'}.png`;
       const file = new File([blob], fileName, { type: 'image/png' });
 
-      const canNativeShareFiles =
-        !!navigator.share &&
-        (!!navigator.canShare ? navigator.canShare({ files: [file] }) : false);
+      const canNativeShareFiles = canShareFilesSafely(file);
 
-      // ✅ GA：分享圖片（按下就算一次意圖；method 依能力）
-      gaEvent('share_image', currentRolePayload({
-        method: canNativeShareFiles ? 'native_files' : 'fallback_download',
-        content_type: 'image'
-      }));
-
+      // ✅ 若可 files 分享：走原生分享（僅分享圖片，不夾帶文字）
       if (canNativeShareFiles){
+        gaEvent('share_image', currentRolePayload({
+          ...baseCapabilityPayload(),
+          method: 'web_share_files'
+        }));
         try{
           await navigator.share({
             title: 'BOOM! 2026 祝福卡',
-            text: 'BOOM! 2026 祝福產生器',
             files: [file]
           });
         }catch(e){
-          // 使用者取消不算錯；不另外提示
+          // 使用者取消不視為錯誤；不額外提示
         }
         return;
       }
 
-      // fallback：改為下載（降權但不失能）
+      // ✅ fallback：改為儲存圖片（不強行附帶文字）
+      gaEvent('save_image', currentRolePayload({
+        ...baseCapabilityPayload(),
+        method: 'download_fallback',
+        reason: 'no_web_share_files'
+      }));
       showToast("此瀏覽器不支援直接分享圖片，已改為儲存圖片");
-      downloadImage(blob); // reuse blob，避免再 render 一次
+      saveImage(blob, { source: 'share_fallback' });
     }
 
-    // 更多內：LINE 文字分享（保留你原本 line.me 的能力）
-    function shareLineText(){
+    // ⋯更多：LINE 分享文字（僅文字＋網址）
+    function lineShareText(){
       closeMore();
-
-      // ✅ GA：LINE 文字分享
-      gaEvent('share_line_text', currentRolePayload({
-        method: 'line_url',
-        content_type: 'text',
-        has_url: true
-      }));
 
       const text = document.getElementById('result-text').innerText;
       const msg = text + "\n\n" + siteUrl;
+
+      // ✅ GA：LINE 文字分享
+      gaEvent('line_share_text', currentRolePayload({
+        ...baseCapabilityPayload(),
+        method: 'line_url',
+        has_url: true
+      }));
+
       window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
     }
 
-    // 下載圖片：可接受外部 blob（避免重複渲染）
-    function downloadImage(passedBlob){
+    // 儲存圖片：可接受外部 blob（避免重複渲染）
+    function saveImage(passedBlob, meta = {}){
       closeMore();
 
-      // ✅ GA：點擊下載圖片
-      gaEvent('download_image', currentRolePayload({ content_type: 'image' }));
+      // ✅ GA：儲存圖片（包含：更多選單主動點 & 分享圖片 fallback）
+      gaEvent('save_image', currentRolePayload({
+        ...baseCapabilityPayload(),
+        method: meta.source === 'share_fallback' ? 'download_fallback' : 'download',
+        source: meta.source || 'more_menu'
+      }));
 
       const save = (blob) => {
         const link = document.createElement('a');
@@ -1165,7 +1258,14 @@
           return;
         }
         save(blob);
+      }).catch(() => {
+        showToast("⚠️ 產生圖片失敗，請稍後再試");
       });
+    }
+
+    // 向後相容：若你之後還有地方呼叫 downloadImage()
+    function downloadImage(passedBlob){
+      saveImage(passedBlob, { source: 'more_menu' });
     }
   </script>
 </body>
