@@ -960,43 +960,99 @@
       });
     }
 
-    function shareGeneric(){
-      // ✅ GA：點擊分享（native / generic）
-      gaEvent('share', currentRolePayload({
-        method: 'native',
-        content_type: 'text',
-        has_url: true
-      }));
+    // ==========================================
+    // PNG share helpers (PNG 優先；不支援就 fallback)
+    // ==========================================
+    async function capturePngFile(scale = 2){
+      const element = document.getElementById('capture-target');
 
-      const text = document.getElementById('result-text').innerText;
-      const shareText = text + "\n\n" + siteUrl;
+      const canvas = await html2canvas(element, {
+        backgroundColor: null,
+        scale,
+        logging: false,
+        useCORS: true
+      });
 
-      if (navigator.share){
-        navigator.share({
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('toBlob_failed');
+
+      const fileName = `boom_2026_${currentRole || 'card'}.png`;
+      return new File([blob], fileName, { type: 'image/png' });
+    }
+
+    async function sharePngPrefer({ method = 'native', scale = 2 } = {}){
+      try{
+        const file = await capturePngFile(scale);
+
+        if (!navigator.share) return false;
+        if (navigator.canShare && !navigator.canShare({ files: [file] })) return false;
+
+        // ✅ GA：嘗試 PNG 分享
+        gaEvent('share', currentRolePayload({
+          method,
+          content_type: 'image',
+          has_url: false
+        }));
+
+        // 注意：部分環境 files + url 會更容易不相容，因此這裡先不帶 url
+        await navigator.share({
           title: 'BOOM! 2026 祝福產生器',
-          text: text,
-          url: siteUrl
-        }).catch(() => {});
-      } else if (navigator.clipboard){
-        navigator.clipboard.writeText(shareText).then(() => {
-          showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
+          text: document.getElementById('result-text').innerText,
+          files: [file]
         });
-      } else {
-        alert("您的裝置不支援一鍵分享，請手動複製以下內容分享給朋友：\n\n" + shareText);
+
+        return true;
+      }catch(e){
+        return false;
       }
     }
 
-    function shareLine(){
-      // ✅ GA：點擊分享到 LINE（分享意圖）
-      gaEvent('share', currentRolePayload({
-        method: 'line',
-        content_type: 'text',
-        has_url: true
-      }));
+    function shareGeneric(){
+      // 先 PNG；不行才走你原本文字分享
+      sharePngPrefer({ method: 'native', scale: 2 }).then((ok) => {
+        if (ok) return;
 
-      const text = document.getElementById('result-text').innerText;
-      const msg = text + "\n\n" + siteUrl;
-      window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
+        // ✅ GA：fallback 文字分享
+        gaEvent('share', currentRolePayload({
+          method: 'native_fallback_text',
+          content_type: 'text',
+          has_url: true
+        }));
+
+        const text = document.getElementById('result-text').innerText;
+        const shareText = text + "\n\n" + siteUrl;
+
+        if (navigator.share){
+          navigator.share({
+            title: 'BOOM! 2026 祝福產生器',
+            text: shareText
+          }).catch(() => {});
+        } else if (navigator.clipboard){
+          navigator.clipboard.writeText(shareText).then(() => {
+            showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
+          });
+        } else {
+          alert("您的裝置不支援一鍵分享，請手動複製以下內容分享給朋友：\n\n" + shareText);
+        }
+      });
+    }
+
+    function shareLine(){
+      // 先 PNG：讓使用者在分享面板選 LINE（若環境支援 files 分享，這是最符合直覺的路徑）
+      sharePngPrefer({ method: 'line', scale: 2 }).then((ok) => {
+        if (ok) return;
+
+        // ✅ GA：LINE fallback 文字分享（line.me 只能傳文字）
+        gaEvent('share', currentRolePayload({
+          method: 'line_fallback_text',
+          content_type: 'text',
+          has_url: true
+        }));
+
+        const text = document.getElementById('result-text').innerText;
+        const msg = text + "\n\n" + siteUrl;
+        window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
+      });
     }
 
     function downloadImage(){
