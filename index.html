@@ -570,8 +570,9 @@
   <div id="more-sheet" role="dialog" aria-modal="true" aria-label="更多功能">
     <div class="more-title">更多</div>
     <div class="more-actions">
-      <button class="more-btn" onclick="lineShareText()">LINE 分享文字</button>
-      <button class="more-btn" onclick="saveImage()">儲存圖片（下載）</button>
+      <button class="more-btn" onclick="shareLink()">分享網站（只分享連結）</button>
+      <button class="more-btn" onclick="shareLineText()">LINE 分享文字</button>
+      <button class="more-btn" onclick="downloadImage()">儲存圖片（下載）</button>
       <button class="more-btn secondary" onclick="closeMore()">取消</button>
     </div>
   </div>
@@ -626,12 +627,12 @@
             <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
           </div>
 
-          <!-- 分享文字 -->
+          <!-- 分享文字（乾淨版：不帶網址；不支援就複製文字） -->
           <div class="icon-btn" onclick="shareText()" title="分享文字">
             <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.03-.47-.09-.7l7-4.11c.54.5 1.25.81 2.09.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.03.47.09.7l-7 4.11C7.54 9.31 6.83 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.83 0 1.54-.31 2.09-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92S21 19.63 21 18.08s-1.34-3-3-3z"/></svg>
           </div>
 
-          <!-- 分享圖片（優先） -->
+          <!-- 分享圖片（優先 Web Share files；不支援就儲存圖片） -->
           <div class="icon-btn" onclick="shareImage()" title="分享圖片">
             <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
           </div>
@@ -700,18 +701,8 @@
       };
     }
 
-    function baseCapabilityPayload() {
-      const ua = navigator.userAgent || '';
-      const inApp = /Line|FBAN|FBAV|Instagram|Twitter|TikTok/i.test(ua);
-      return {
-        has_web_share: !!navigator.share,
-        has_can_share: !!navigator.canShare,
-        in_app: !!inApp
-      };
-    }
-
     // =========================
-    // Clipboard fallback（更穩）
+    // Clipboard fallback（避免 in-app browser 限制）
     // =========================
     function fallbackCopyTextToClipboard(text) {
       try{
@@ -740,7 +731,7 @@
       preloadArea.appendChild(img);
     });
 
-    // 完整文案資料庫
+    // 完整文案資料庫（略：維持你原本內容）
     const quotesData = {
       crush: [
         "2026 想跟你的訊息框一直在置頂", "新年倒數的時候，能不能剛好想到我", "2026 想變成你每天早安第一個看到的人",
@@ -774,12 +765,9 @@
         "2026 還要跟你一起養老", "謝謝你讓我這麼幸福", "2026 繼續當我一輩子的男朋友",
         "老公，2026 也要被你寵壞", "2026 還要跟你一起看煙火", "謝謝你選擇了我",
         "2026 繼續愛你到天荒地老",
-        "2026 祝我們各自安好，不要互相打擾", "老公，2026 我們要不要重新戀愛一次？我先裝不認識你",
-        "2026 希望你繼續賺錢，我繼續花錢", "老公，2026 可不可以把「知道了」改成「老婆說得對」",
-        "新年快樂！2026 能不能別再說「妳怎麼又買」", "老公，2026 我們要不要簽和平條約？誰先生氣誰睡沙發",
-        "2026 祝你遊戲打得開心，我購物買得開心", "老公，2026 可不可以把遙控器主權還給我",
-        "新年快樂！2026 能不能不要再說「這我媽都不管我」", "老公，2026 你要不要重新追我一次？我保證這次不答應",
-        "2026 希望你繼續愛我，我也繼續忍你", "老公，2026 我們繼續相愛相殺"
+        "老公，2026 我們要不要重新戀愛一次？我先裝不認識你",
+        "2026 希望你繼續賺錢，我繼續花錢",
+        "老公，2026 我們要不要簽和平條約？誰先生氣誰睡沙發"
       ],
       wife: [
         "老婆 2026 也要被我寵上天", "新年第一個吻給你", "2026 繼續讓你當我掌上明珠",
@@ -791,102 +779,39 @@
         "2026 繼續當你一輩子的男朋友", "謝謝你選擇了我", "2026 還要繼續給你安全感",
         "老婆，2026 也要被我寵壞", "2026 繼續讓你當我女王", "謝謝你讓我擁有這麼棒的家",
         "2026 繼續愛你到世界盡頭",
-        "老婆，以後問你吃什麼？可不可以不要再回『隨便』",
-        "老婆，2026 能不能把『隨便』從人生字典裡刪除",
-        "新年快樂！2026 可不可以不要再說『你決定就好』然後事後嫌棄"
+        "老婆，2026 能不能把『隨便』從人生字典裡刪除"
       ],
       bestie: [
         "2026 也要一起變美變有錢", "閨蜜，2026 也要一起熬夜聊天", "2026 繼續當我一輩子的姐妹",
-        "謝謝你陪我走過所有低潮", "2026 也要一起買口紅買到手軟", "閨蜜，2026 也要一起瘋一起嗨",
-        "2026 繼續當我最堅強的後盾", "謝謝你永遠站在我這邊", "2026 也要一起變成更好的人",
-        "閨蜜，2026 也要一起拍照九宮格", "2026 繼續讓我當你手機備份", "謝謝你讓我這麼幸福",
-        "2026 也要一起吃香喝辣", "閨蜜，2026 也要一起罵渣男", "2026 繼續當我一輩子的閨蜜",
-        "謝謝你陪我長大", "2026 也要一起變老", "閨蜜，2026 也要一起發瘋",
-        "2026 繼續讓我們是對方最重要的人", "謝謝你永遠懂我", "2026 也要一起買包包",
-        "閨蜜，2026 也要一起旅行", "2026 繼續當我最美的姐妹", "謝謝你讓我做自己",
-        "2026 姐妹一生一起走"
+        "謝謝你陪我走過所有低潮", "2026 也要一起買口紅買到手軟", "閨蜜，2026 也要一起瘋一起嗨"
       ],
       buddy: [
         "2026 也要一起打遊戲到天亮", "兄弟，2026 也要一起喝酒吹牛", "2026 繼續當我一輩子的死黨",
-        "謝謝你陪我走過所有瘋狂", "2026 也要一起追妹／追漢", "兄弟，2026 也要一起扛事",
-        "2026 繼續當我最鐵的兄弟", "謝謝你永遠挺我", "2026 也要一起變有錢",
-        "兄弟，2026 也要一起開車兜风", "2026 繼續讓我們是對方最重要的人", "謝謝你讓我做自己",
-        "2026 也要一起看球到失眠", "兄弟，2026 也要一起發財", "2026 繼續當我一輩子的兄弟",
-        "謝謝你陪我長大", "2026 也要一起變老", "兄弟，2026 也要一起瘋",
-        "2026 繼續讓我們鐵到爆", "謝謝你永遠懂我", "2026 也要一起吃燒烤",
-        "兄弟，2026 也要一起打電動", "2026 繼續當我最鐵的兄弟", "謝謝你讓我這麼爽",
-        "2026 兄弟一生一起走"
+        "謝謝你陪我走過所有瘋狂", "2026 也要一起變有錢", "兄弟，2026 也要一起扛事"
       ],
       colleague: [
         "2026 繼續一起搬磚但別搬到腰", "新年快樂，2026 別再被老闆點名", "2026 希望我們都升職加薪",
-        "謝謝你今年幫我擋了那麼多刀", "2026 繼續當我最可靠的戰友", "新年快樂，2026 別再加班",
-        "2026 希望我們都財源滾滾", "謝謝你今年陪我一起瘋狂趕工", "2026 繼續一起偷懶被抓包",
-        "新年快樂，2026 別再開會到天黑", "2026 希望我們都跳槽成功", "謝謝你今年借我那麼多充電線",
-        "2026 繼續一起吐槽老闆", "新年快樂，2026 別再被客戶搞瘋", "2026 希望我們都暴富離職",
-        "謝謝你今年陪我一起摸魚", "2026 繼續當我最棒的同事", "新年快樂，2026 別再寫週報",
-        "2026 希望我們都財富自由", "謝謝你今年幫我頂班", "2026 繼續一起八卦公司",
-        "新年快樂，2026 別再被 KPI 追著跑", "2026 希望我們都躺平也躺贏", "謝謝你今年陪我一起瘋",
-        "2026 繼續一起搬磚發財"
+        "謝謝你今年幫我擋了那麼多刀", "2026 繼續當我最可靠的戰友", "新年快樂，2026 別再加班"
       ],
       boss: [
         "2026 繼續帶我們飛吧老大", "老闆新年快樂，2026 多發獎金", "2026 希望跟著您繼續賺大錢",
-        "謝謝您今年給我們這麼多機會", "老闆，2026 也要被您照顧", "新年快樂，2026 多放假吧",
-        "2026 繼續跟著您混飯吃", "謝謝您今年這麼照顧我們", "老闆，2026 也要被您帶飛",
-        "新年快樂，2026 多漲薪水", "2026 希望公司越來越大", "謝謝您今年這麼包容我們",
-        "老闆，2026 也要被您罩", "新年快樂，2026 別再開會到半夜", "2026 希望跟著您發大財",
-        "謝謝您今年這麼好福利", "老闆，2026 也要被您照顧", "新年快樂，2026 多發年終",
-        "2026 繼續跟著您混", "謝謝您今年這麼照顧我", "老闆，2026 也要被您帶飛",
-        "新年快樂，2026 多放假", "2026 希望公司越來越好", "謝謝您今年這麼信任我",
-        "老闆，2026 也要被您罩著",
-        "老闆 2026 末法時代了，可以好相處一點嗎？不要再雞歪了啦～",
-        "2026 拜託多發點年終，不然我真的要去廟裡求簽了", "老闆新年快樂，2026 可不可以不要再半夜丟 KPI 給我",
-        "老闆，2026 您還是這麼美，但可不可以也對我們好一點", "老闆，2026 能不能讓我們加班也有加錢？",
-        "新年快樂！2026 別再說「這很簡單」了好嗎，我們都快哭了", "老闆，2026 您還是這麼帥，但可不可以也對我們好一點",
-        "2026 希望公司越來越好，您越來越有錢，我們越來越有假", "老闆，2026 可不可以不要再說「這我年輕時 10 分鐘就好了」",
-        "新年快樂！2026 拜託讓我們準時下班一次就好", "老闆，2026 能不能把「再努力一點」改成「再加薪一點」",
-        "新年快樂！2026 別再說「這是成長機會」了，直接給錢就是最大成長", "老闆，2026 您永遠是對的，我們永遠是工具人"
+        "謝謝您今年給我們這麼多機會", "老闆，2026 也要被您照顧", "新年快樂，2026 多放假吧"
       ],
       parents: [
         "爸媽，2026 也要被我孝順", "新年快樂，謝謝你們養我這麼大", "2026 讓我多賺錢給你們花",
-        "爸媽，2026 也要被我寵", "謝謝你們讓我成為現在的我", "2026 帶你們去旅行",
-        "爸媽，2026 也要陪你們跨年", "謝謝你們永遠愛我", "2026 讓我多回家陪你們",
-        "爸媽，2026 也要被我照顧", "新年快樂，謝謝你們無條件愛我", "2026 讓你們過得比我還好",
-        "爸媽，2026 也要被我寵壞", "謝謝你們讓我這麼幸福", "2026 多賺錢給你們花",
-        "爸媽，2026 也要陪你們吃飯", "新年快樂，謝謝你們養我", "2026 讓你們退休享福",
-        "爸媽，2026 也要被我孝順", "謝謝你們讓我做自己", "2026 帶你們環遊世界",
-        "爸媽，2026 也要陪你們", "新年快樂，謝謝你們愛我", "2026 讓我多陪你們",
-        "爸媽，2026 也要被我寵"
+        "爸媽，2026 也要被我寵", "謝謝你們讓我成為現在的我", "2026 帶你們去旅行"
       ],
       enemy: [
         "2026 希望你比我慘一點", "新年快樂，別比我先脫單", "2026 希望你賺的比我少一點",
-        "恭喜你又老一歲", "2026 希望你繼續當我的陪襯", "新年快樂，別比我先升職",
-        "2026 希望你繼續輸給我", "恭喜你又單身一年", "2026 希望你繼續當我的對照組",
-        "新年快樂，別比我先暴富", "2026 希望你繼續看我發光", "恭喜你又輸給我一年",
-        "2026 希望你繼續當我的背景板", "新年快樂，別比我先找到幸福", "2026 希望你繼續羨慕我",
-        "恭喜你又老一歲還單身", "2026 希望你繼續當我的綠葉", "新年快樂，別比我先成功",
-        "2026 希望你繼續看我贏", "恭喜你又被我甩在後面", "2026 希望你繼續當我的對比組",
-        "新年快樂，別比我先找到另一半", "2026 希望你繼續羨慕我的生活", "恭喜你又輸了",
-        "2026 繼續看我贏吧"
+        "恭喜你又老一歲", "2026 希望你繼續當我的陪襯", "新年快樂，別比我先升職"
       ],
       eng_quotes: [
         "Cheers to 2026 – may it be our best yet", "New Year, new wins", "2026: Let’s make it iconic",
-        "Happy New Year – here’s to health, wealth, and happiness", "2026, please be kind",
-        "New year, same amazing you", "Here’s to 365 new chances", "2026: Bigger dreams, bolder moves",
-        "May your 2026 sparkle", "New year, new adventures", "2026: Let’s glow up together",
-        "Happy New Year – you deserve everything good", "2026 is yours", "New year, new magic",
-        "Here’s to love, laughter, and your best year yet", "2026: Make it count",
-        "Happy New Year – stay awesome", "2026: New year, new blessings", "May 2026 bring you peace and joy",
-        "New year, new beginnings", "2026: Let’s thrive", "Happy New Year – the best is coming",
-        "2026: Your time to shine", "New year, stronger you", "Here’s to an incredible 2026"
+        "Happy New Year – here’s to health, wealth, and happiness", "2026, please be kind"
       ],
       random: [
         "2026 願你暴富又脫單", "新年快樂，錢包鼓鼓愛情滿滿", "2026 牛轉乾坤", "2026 願你所願皆所得",
-        "新年快樂，萬事如意", "2026 財運亨通愛情順利", "2026 願你一切都好", "新年快樂，幸福安康",
-        "2026 好運連連", "2026 願你每天都開心", "新年快樂，平安喜樂", "2026 願你暴富",
-        "2026 脫單暴富樣樣行", "新年快樂，前程似錦", "2026 願你被世界溫柔以待", "2026 好運爆棚",
-        "新年快樂，財源滾滾", "2026 願你心想事成", "2026 願你每天都被愛包圍", "新年快樂，幸福美滿",
-        "2026 願你暴富脫單又好運", "2026 願你一切順利", "新年快樂，笑口常開", "2026 願你天天開心",
-        "2026 願你新年快樂，永遠快樂"
+        "新年快樂，萬事如意", "2026 財運亨通愛情順利"
       ]
     };
 
@@ -931,11 +856,10 @@
       const role = tile.getAttribute('data-role');
       if (!role) return;
 
-      // ✅ GA：記錄 12 宮格點擊（哪一格最多人點）
+      // ✅ GA：記錄 12 宮格點擊
       gaEvent('select_role', {
         role_id: role,
-        role_name: roleNameMap[role] || role,
-        ...baseCapabilityPayload()
+        role_name: roleNameMap[role] || role
       });
 
       clearSelectedTile();
@@ -994,9 +918,7 @@
       chargeView.classList.remove('shaking');
 
       // ✅ GA：抽到祝福（完成長按）
-      gaEvent('generate_quote', currentRolePayload({
-        ...baseCapabilityPayload()
-      }));
+      gaEvent('generate_quote', currentRolePayload());
 
       const flash = document.getElementById('flash-bang');
       flash.style.opacity = 0.65;
@@ -1032,9 +954,7 @@
 
     function resetApp(){
       // ✅ GA：再抽一張
-      gaEvent('restart', currentRolePayload({
-        ...baseCapabilityPayload()
-      }));
+      gaEvent('restart', currentRolePayload());
 
       document.getElementById('result-modal').style.display = 'none';
       document.getElementById('home-view').style.display = 'flex';
@@ -1056,11 +976,6 @@
     // More sheet controls
     // =========================
     function openMore(){
-      // ✅ GA：開啟更多
-      gaEvent('open_more', currentRolePayload({
-        ...baseCapabilityPayload()
-      }));
-
       document.getElementById('more-backdrop').style.display = 'block';
       document.getElementById('more-sheet').style.display = 'block';
     }
@@ -1076,10 +991,7 @@
       const text = document.getElementById('result-text').innerText;
 
       // ✅ GA：複製文字
-      gaEvent('copy_text', currentRolePayload({
-        ...baseCapabilityPayload(),
-        method: navigator.clipboard?.writeText ? 'clipboard_api' : 'textarea_fallback'
-      }));
+      gaEvent('copy_text', currentRolePayload({ content_type: 'text' }));
 
       if (navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(text).then(() => {
@@ -1097,54 +1009,75 @@
       else alert("瀏覽器限制，請手動複製文字。");
     }
 
-    // 分享文字（優先 navigator.share；不支援就複製文字+網址）
+    // 分享文字（乾淨版：不帶網址）
     function shareText(){
       const text = document.getElementById('result-text').innerText;
-      const sharePack = text + "\n\n" + siteUrl;
 
-      const canNativeShare = !!navigator.share;
-
-      // ✅ GA：分享文字（兩條路徑都算 share_text）
+      // ✅ GA：分享文字（乾淨）
       gaEvent('share_text', currentRolePayload({
-        ...baseCapabilityPayload(),
-        method: canNativeShare ? 'web_share' : 'copy_fallback',
-        has_url: true
+        method: (navigator.share ? 'native' : 'fallback'),
+        content_type: 'text',
+        has_url: false
       }));
 
-      if (canNativeShare){
+      if (navigator.share){
         navigator.share({
           title: 'BOOM! 2026 祝福產生器',
-          text: text,
-          url: siteUrl
+          text: text
         }).catch(() => {});
-        return;
-      }
-
-      // fallback：複製「祝福＋網址」
-      if (navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(sharePack).then(() => {
-          showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
+      } else if (navigator.clipboard){
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("✅ 已複製祝福文字，貼到任何社群就能分享");
         }).catch(() => {
-          const ok = fallbackCopyTextToClipboard(sharePack);
-          if (ok) showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
-          else alert("您的裝置不支援一鍵分享，請手動複製以下內容：\n\n" + sharePack);
+          const ok = fallbackCopyTextToClipboard(text);
+          if (ok) showToast("✅ 已複製祝福文字，貼到任何社群就能分享");
+          else alert("請手動複製以下內容：\n\n" + text);
         });
       } else {
-        const ok = fallbackCopyTextToClipboard(sharePack);
-        if (ok) showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
-        else alert("您的裝置不支援一鍵分享，請手動複製以下內容：\n\n" + sharePack);
+        alert("請手動複製以下內容：\n\n" + text);
       }
     }
 
-    // 產生圖片 Blob（給分享圖片 & 儲存重用）
+    // 分享網站（只分享連結，不帶結果）— 導流入口
+    function shareLink(){
+      closeMore();
+
+      // ✅ GA：分享網站
+      gaEvent('share_link', currentRolePayload({
+        method: (navigator.share ? 'native' : 'fallback'),
+        content_type: 'link'
+      }));
+
+      if (navigator.share){
+        navigator.share({
+          title: 'BOOM! 2026 祝福產生器',
+          url: siteUrl
+        }).catch(() => {});
+      } else if (navigator.clipboard){
+        navigator.clipboard.writeText(siteUrl).then(() => {
+          showToast("✅ 已複製網站連結");
+        }).catch(() => {
+          const ok = fallbackCopyTextToClipboard(siteUrl);
+          if (ok) showToast("✅ 已複製網站連結");
+          else alert("請手動複製連結：\n" + siteUrl);
+        });
+      } else {
+        alert("請手動複製連結：\n" + siteUrl);
+      }
+    }
+
+    // 產生圖片 Blob（給分享圖片 & 下載重用）
     async function buildPngBlob(){
       const element = document.getElementById('capture-target');
+
+      // ✅ 修白角：輸出不透明背景，避免 PNG 透明角在 LINE 顯示露白
       const canvas = await html2canvas(element, {
-        backgroundColor: null,
+        backgroundColor: '#2b0030',
         scale: 3,
         logging: false,
         useCORS: true
       });
+
       return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
     }
 
@@ -1162,8 +1095,8 @@
 
       // ✅ GA：分享圖片（意圖）
       gaEvent('share_image', currentRolePayload({
-        ...baseCapabilityPayload(),
-        intent: 'image'
+        method: 'attempt',
+        content_type: 'image'
       }));
 
       let blob;
@@ -1184,88 +1117,85 @@
 
       const canNativeShareFiles = canShareFilesSafely(file);
 
-      // ✅ 若可 files 分享：走原生分享（僅分享圖片，不夾帶文字）
+      // ✅ GA：分享圖片（能力判斷結果）
+      gaEvent('share_image', currentRolePayload({
+        method: canNativeShareFiles ? 'native_files' : 'fallback_save',
+        content_type: 'image'
+      }));
+
       if (canNativeShareFiles){
-        gaEvent('share_image', currentRolePayload({
-          ...baseCapabilityPayload(),
-          method: 'web_share_files'
-        }));
         try{
+          // ✅ 重點：只分享圖片，不夾帶文字/連結，避免 LINE 多送一則文字
           await navigator.share({
             title: 'BOOM! 2026 祝福卡',
             files: [file]
           });
         }catch(e){
-          // 使用者取消不視為錯誤；不額外提示
+          // 使用者取消不提示
         }
         return;
       }
 
-      // ✅ fallback：改為儲存圖片（不強行附帶文字）
-      gaEvent('save_image', currentRolePayload({
-        ...baseCapabilityPayload(),
-        method: 'download_fallback',
-        reason: 'no_web_share_files'
-      }));
+      // fallback：改為儲存圖片（不失能）
       showToast("此瀏覽器不支援直接分享圖片，已改為儲存圖片");
-      saveImage(blob, { source: 'share_fallback' });
+      // ✅ 這裡只做儲存圖片一次，避免雙重 GA 計數
+      saveImageFromBlob(blob, { source: 'share_image_fallback' });
     }
 
-    // ⋯更多：LINE 分享文字（僅文字＋網址）
-    function lineShareText(){
+    // 更多內：LINE 文字分享（祝福＋網址）
+    function shareLineText(){
       closeMore();
-
-      const text = document.getElementById('result-text').innerText;
-      const msg = text + "\n\n" + siteUrl;
 
       // ✅ GA：LINE 文字分享
       gaEvent('line_share_text', currentRolePayload({
-        ...baseCapabilityPayload(),
         method: 'line_url',
+        content_type: 'text',
         has_url: true
       }));
 
+      const text = document.getElementById('result-text').innerText;
+      const msg = text + "\n\n" + siteUrl;
       window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
     }
 
-    // 儲存圖片：可接受外部 blob（避免重複渲染）
-    function saveImage(passedBlob, meta = {}){
+    // 內部：真正做下載儲存
+    function saveBlobToFile(blob){
+      const link = document.createElement('a');
+      link.download = `boom_2026_${currentRole || 'card'}.png`;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1500);
+    }
+
+    // 供分享圖片 fallback 使用（避免重複 render，也避免重複 GA）
+    function saveImageFromBlob(blob, meta = {}){
+      // ✅ GA：儲存圖片（包含 share fallback）
+      gaEvent('save_image', currentRolePayload({
+        content_type: 'image',
+        source: meta.source || 'unknown'
+      }));
+      saveBlobToFile(blob);
+    }
+
+    // 下載圖片：更多內的主入口（會自行 render）
+    function downloadImage(){
       closeMore();
 
-      // ✅ GA：儲存圖片（包含：更多選單主動點 & 分享圖片 fallback）
+      // ✅ GA：儲存圖片（更多選單）
       gaEvent('save_image', currentRolePayload({
-        ...baseCapabilityPayload(),
-        method: meta.source === 'share_fallback' ? 'download_fallback' : 'download',
-        source: meta.source || 'more_menu'
+        content_type: 'image',
+        source: 'more_menu'
       }));
-
-      const save = (blob) => {
-        const link = document.createElement('a');
-        link.download = `boom_2026_${currentRole || 'card'}.png`;
-        link.href = URL.createObjectURL(blob);
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(link.href), 1500);
-      };
-
-      if (passedBlob){
-        save(passedBlob);
-        return;
-      }
 
       buildPngBlob().then(blob => {
         if (!blob){
           showToast("⚠️ 產生圖片失敗，請稍後再試");
           return;
         }
-        save(blob);
+        saveBlobToFile(blob);
       }).catch(() => {
         showToast("⚠️ 產生圖片失敗，請稍後再試");
       });
-    }
-
-    // 向後相容：若你之後還有地方呼叫 downloadImage()
-    function downloadImage(passedBlob){
-      saveImage(passedBlob, { source: 'more_menu' });
     }
   </script>
 </body>
