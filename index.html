@@ -24,9 +24,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="2026 新年祝福產生器 | 你的跨年詞窮救星">
   <meta property="og:description" content="別再傳罐頭訊息了！這裡有給曖昧對象的「撩人金句」、給老闆的「保命文案」、還有給前任的「核彈級祝福」。點擊立即生成！">
-  <!-- 建議加尾斜線，降低平台快取造成的預覽不一致 -->
   <meta property="og:url" content="https://boom-2026-card.netlify.app/">
-  <!-- 12 宮格預覽圖（建議最終做成 1200x630；未確定尺寸前先不宣告 width/height） -->
   <meta property="og:image" content="https://boom-2026-card.netlify.app/og-newyear-2026.png">
   <meta property="og:locale" content="zh_TW">
 
@@ -408,7 +406,7 @@
     }
     .btn-restart:active{ transform: scale(0.96); }
 
-    .share-icons{ display:flex; gap: 25px; }
+    .share-icons{ display:flex; gap: 18px; }
     .icon-btn{
       width: 52px;
       height: 52px;
@@ -421,6 +419,7 @@
       align-items:center;
       cursor:pointer;
       transition: background 0.2s;
+      position: relative;
     }
     .icon-btn svg{
       width: 26px;
@@ -429,7 +428,6 @@
       filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
     }
     .icon-btn:active{ background: rgba(255,255,255,0.3); }
-    .icon-btn.line svg{ fill: #06C755; }
 
     .footer-copyright{
       margin-top: 30px;
@@ -472,6 +470,61 @@
       transition: opacity 0.5s ease-out;
     }
 
+    /* === 更多 (⋯) Bottom Sheet === */
+    #more-sheet{
+      display:none;
+      position: fixed;
+      left:0; right:0; bottom:0;
+      z-index: 300;
+      padding: 14px 14px 18px;
+      background: rgba(20,20,20,0.92);
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.4);
+      max-width: var(--mobile-width);
+      margin: 0 auto;
+    }
+    #more-backdrop{
+      display:none;
+      position: fixed;
+      inset:0;
+      z-index: 299;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .more-title{
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin: 6px 6px 10px;
+      color: rgba(255,255,255,0.9);
+    }
+    .more-actions{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .more-btn{
+      width:100%;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08);
+      color:#fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor:pointer;
+      text-align:left;
+    }
+    .more-btn:active{ background: rgba(255,255,255,0.18); }
+    .more-btn.secondary{
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.9);
+    }
+
     /* SEO 展開區 */
     .seo-faq{
       width: 100%;
@@ -511,6 +564,17 @@
   <div id="flash-bang"></div>
   <div id="toast">✅ 已複製到剪貼簿</div>
   <div id="preload-area"></div>
+
+  <!-- 更多：Backdrop + Sheet -->
+  <div id="more-backdrop" onclick="closeMore()"></div>
+  <div id="more-sheet" role="dialog" aria-modal="true" aria-label="更多功能">
+    <div class="more-title">更多</div>
+    <div class="more-actions">
+      <button class="more-btn" onclick="shareLineText()">LINE 分享文字</button>
+      <button class="more-btn" onclick="downloadImage()">儲存圖片（下載）</button>
+      <button class="more-btn secondary" onclick="closeMore()">取消</button>
+    </div>
+  </div>
 
   <div id="app-container">
     <div id="home-view">
@@ -557,20 +621,24 @@
         <button class="btn-restart" onclick="resetApp()">再抽一張</button>
 
         <div class="share-icons">
+          <!-- 複製文字 -->
           <div class="icon-btn" onclick="copyText()" title="複製文字">
             <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
           </div>
 
-          <div class="icon-btn" onclick="shareGeneric()" title="分享卡片給任何社群">
-            <svg viewBox="0 0 24 24"><path d="M18 8l-6-6-6 6 1.41 1.41L11 5.83V16h2V5.83l3.59 3.58L18 8zm-14 8v4h16v-4h-2v2H6v-2H4z"/></svg>
+          <!-- 分享文字（原生分享；不支援就複製文字+網址） -->
+          <div class="icon-btn" onclick="shareText()" title="分享文字">
+            <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.03-.47-.09-.7l7-4.11c.54.5 1.25.81 2.09.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.03.47.09.7l-7 4.11C7.54 9.31 6.83 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.83 0 1.54-.31 2.09-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92S21 19.63 21 18.08s-1.34-3-3-3z"/></svg>
           </div>
 
-          <div class="icon-btn line" onclick="shareLine()" title="分享到 LINE">
-            <svg viewBox="0 0 24 24"><path d="M20.5 10.3c0-4.6-4.2-8.3-9.4-8.3-5.2 0-9.4 3.7-9.4 8.3 0 2.3 1 4.4 2.6 5.9 0.3 0.3 0.2 0.8 0.1 1.2-0.3 1.1-1.1 2.4-1.2 2.6 0 0 0 0.2 0.2 0.2 0.1 0 1.6-0.2 3.5-1.3 0.5-0.3 1-0.3 1.5-0.2 0.7 0.2 1.4 0.3 2.2 0.3 5.1 0 9.3-3.7 9.3-8.3z"/></svg>
+          <!-- 分享圖片（優先） -->
+          <div class="icon-btn" onclick="shareImage()" title="分享圖片">
+            <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
           </div>
 
-          <div class="icon-btn" onclick="downloadImage()" title="下載圖片">
-            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          <!-- 更多 -->
+          <div class="icon-btn" onclick="openMore()" title="更多">
+            <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
           </div>
         </div>
       </div>
@@ -937,6 +1005,7 @@
       clearSelectedTile();
       stopCharge();
       isCompleting = false;
+      closeMore();
     }
 
     function showToast(message){
@@ -946,6 +1015,21 @@
       setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
+    // =========================
+    // More sheet controls
+    // =========================
+    function openMore(){
+      document.getElementById('more-backdrop').style.display = 'block';
+      document.getElementById('more-sheet').style.display = 'block';
+    }
+    function closeMore(){
+      document.getElementById('more-backdrop').style.display = 'none';
+      document.getElementById('more-sheet').style.display = 'none';
+    }
+
+    // =========================
+    // Share helpers
+    // =========================
     function copyText(){
       // ✅ GA：點擊 copy
       gaEvent('click_copy', currentRolePayload({ content_type: 'text' }));
@@ -960,111 +1044,127 @@
       });
     }
 
-    // ==========================================
-    // PNG share helpers (PNG 優先；不支援就 fallback)
-    // ==========================================
-    async function capturePngFile(scale = 2){
-      const element = document.getElementById('capture-target');
+    // 分享文字（優先用 navigator.share；不支援就複製文字+網址）
+    function shareText(){
+      const text = document.getElementById('result-text').innerText;
+      const shareText = text + "\n\n" + siteUrl;
 
-      const canvas = await html2canvas(element, {
-        backgroundColor: null,
-        scale,
-        logging: false,
-        useCORS: true
-      });
+      // ✅ GA：分享文字
+      gaEvent('share_text', currentRolePayload({
+        method: (navigator.share ? 'native' : 'fallback'),
+        content_type: 'text',
+        has_url: true
+      }));
 
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) throw new Error('toBlob_failed');
-
-      const fileName = `boom_2026_${currentRole || 'card'}.png`;
-      return new File([blob], fileName, { type: 'image/png' });
-    }
-
-    async function sharePngPrefer({ method = 'native', scale = 2 } = {}){
-      try{
-        const file = await capturePngFile(scale);
-
-        if (!navigator.share) return false;
-        if (navigator.canShare && !navigator.canShare({ files: [file] })) return false;
-
-        // ✅ GA：嘗試 PNG 分享
-        gaEvent('share', currentRolePayload({
-          method,
-          content_type: 'image',
-          has_url: false
-        }));
-
-        // 注意：部分環境 files + url 會更容易不相容，因此這裡先不帶 url
-        await navigator.share({
+      if (navigator.share){
+        navigator.share({
           title: 'BOOM! 2026 祝福產生器',
-          text: document.getElementById('result-text').innerText,
-          files: [file]
+          text: text,
+          url: siteUrl
+        }).catch(() => {});
+      } else if (navigator.clipboard){
+        navigator.clipboard.writeText(shareText).then(() => {
+          showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
         });
-
-        return true;
-      }catch(e){
-        return false;
+      } else {
+        alert("您的裝置不支援一鍵分享，請手動複製以下內容分享給朋友：\n\n" + shareText);
       }
     }
 
-    function shareGeneric(){
-      // 先 PNG；不行才走你原本文字分享
-      sharePngPrefer({ method: 'native', scale: 2 }).then((ok) => {
-        if (ok) return;
+    // 產生圖片 Blob（給分享圖片 & 下載重用）
+    async function buildPngBlob(){
+      const element = document.getElementById('capture-target');
+      const canvas = await html2canvas(element, { backgroundColor: null, scale: 3, logging: false, useCORS: true });
+      return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    }
 
-        // ✅ GA：fallback 文字分享
-        gaEvent('share', currentRolePayload({
-          method: 'native_fallback_text',
-          content_type: 'text',
-          has_url: true
-        }));
+    // 分享圖片（優先）：Web Share Level 2（files）
+    async function shareImage(){
+      closeMore();
 
-        const text = document.getElementById('result-text').innerText;
-        const shareText = text + "\n\n" + siteUrl;
+      let blob;
+      try{
+        blob = await buildPngBlob();
+      }catch(e){
+        // ✅ GA：分享圖片失敗（render error）
+        gaEvent('share_image', currentRolePayload({ method: 'error', content_type: 'image' }));
+        showToast("⚠️ 產生圖片失敗，請稍後再試");
+        return;
+      }
 
-        if (navigator.share){
-          navigator.share({
-            title: 'BOOM! 2026 祝福產生器',
-            text: shareText
-          }).catch(() => {});
-        } else if (navigator.clipboard){
-          navigator.clipboard.writeText(shareText).then(() => {
-            showToast("✅ 已複製祝福＋網址，貼到任何社群就能分享");
+      const fileName = `boom_2026_${currentRole || 'card'}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      const canNativeShareFiles =
+        !!navigator.share &&
+        (!!navigator.canShare ? navigator.canShare({ files: [file] }) : false);
+
+      // ✅ GA：分享圖片（按下就算一次意圖；method 依能力）
+      gaEvent('share_image', currentRolePayload({
+        method: canNativeShareFiles ? 'native_files' : 'fallback_download',
+        content_type: 'image'
+      }));
+
+      if (canNativeShareFiles){
+        try{
+          await navigator.share({
+            title: 'BOOM! 2026 祝福卡',
+            text: 'BOOM! 2026 祝福產生器',
+            files: [file]
           });
-        } else {
-          alert("您的裝置不支援一鍵分享，請手動複製以下內容分享給朋友：\n\n" + shareText);
+        }catch(e){
+          // 使用者取消不算錯；不另外提示
         }
-      });
+        return;
+      }
+
+      // fallback：改為下載（降權但不失能）
+      showToast("此瀏覽器不支援直接分享圖片，已改為儲存圖片");
+      downloadImage(blob); // reuse blob，避免再 render 一次
     }
 
-    function shareLine(){
-      // 先 PNG：讓使用者在分享面板選 LINE（若環境支援 files 分享，這是最符合直覺的路徑）
-      sharePngPrefer({ method: 'line', scale: 2 }).then((ok) => {
-        if (ok) return;
+    // 更多內：LINE 文字分享（保留你原本 line.me 的能力）
+    function shareLineText(){
+      closeMore();
 
-        // ✅ GA：LINE fallback 文字分享（line.me 只能傳文字）
-        gaEvent('share', currentRolePayload({
-          method: 'line_fallback_text',
-          content_type: 'text',
-          has_url: true
-        }));
+      // ✅ GA：LINE 文字分享
+      gaEvent('share_line_text', currentRolePayload({
+        method: 'line_url',
+        content_type: 'text',
+        has_url: true
+      }));
 
-        const text = document.getElementById('result-text').innerText;
-        const msg = text + "\n\n" + siteUrl;
-        window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
-      });
+      const text = document.getElementById('result-text').innerText;
+      const msg = text + "\n\n" + siteUrl;
+      window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
     }
 
-    function downloadImage(){
+    // 下載圖片：可接受外部 blob（避免重複渲染）
+    function downloadImage(passedBlob){
+      closeMore();
+
       // ✅ GA：點擊下載圖片
       gaEvent('download_image', currentRolePayload({ content_type: 'image' }));
 
-      const element = document.getElementById('capture-target');
-      html2canvas(element, { backgroundColor: null, scale: 3, logging: false, useCORS: true }).then(canvas => {
+      const save = (blob) => {
         const link = document.createElement('a');
-        link.download = `boom_2026_${currentRole}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.download = `boom_2026_${currentRole || 'card'}.png`;
+        link.href = URL.createObjectURL(blob);
         link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1500);
+      };
+
+      if (passedBlob){
+        save(passedBlob);
+        return;
+      }
+
+      buildPngBlob().then(blob => {
+        if (!blob){
+          showToast("⚠️ 產生圖片失敗，請稍後再試");
+          return;
+        }
+        save(blob);
       });
     }
   </script>
