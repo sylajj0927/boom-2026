@@ -19,7 +19,7 @@
 
   <!-- SEO / 社群預覽 -->
   <meta name="description" content="還在煩惱 2026 新年祝福要傳什麼？這款產生器提供 300+ 句創意跨年賀詞！無論是給曖昧對象、老闆還是前任，一鍵生成不尷尬的祝福文案。">
-  <meta name="keywords" content="2026新年祝福, 跨年賀詞, 祝福語產生器, 蛇年吉祥話, 創意文案, 罐頭簡訊, BOOM">
+  <meta name="keywords" content="2026新年祝福, 跨年賀詞, 祝福語產生器, 創意文案, 罐頭簡訊, BOOM">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="2026 新年祝福產生器 | 你的跨年詞窮救星">
@@ -613,6 +613,25 @@
       parents: '🧧 爸媽', enemy: '☠️ 死對頭', eng_quotes: '✨ 2026', random: '🎲 幸運兒'
     };
 
+    // =========================
+    // GA4 helpers（安全、可重用）
+    // =========================
+    function gaEvent(eventName, params = {}) {
+      try {
+        if (typeof gtag === 'function') {
+          gtag('event', eventName, params);
+        }
+      } catch (e) {}
+    }
+
+    function currentRolePayload(extra = {}) {
+      return {
+        role_id: currentRole || '(none)',
+        role_name: roleNameMap[currentRole] || currentRole || '(none)',
+        ...extra
+      };
+    }
+
     // 預載背景圖（避免切換閃爍）— ✅ 統一加 ./，路徑更穩
     const preloadArea = document.getElementById('preload-area');
     Object.values(bgMap).forEach(src => {
@@ -784,7 +803,9 @@
     const chargeCircle = document.getElementById('charge-circle');
     const chargeView = document.getElementById('charge-view');
     const appBg = document.getElementById('app-background');
-    const siteUrl = window.location.origin + window.location.pathname;
+
+    // 分享時用「乾淨的站點 URL」
+    const siteUrl = 'https://boom-2026-card.netlify.app/';
 
     const grid = document.getElementById('role-grid');
     let lastSelectedTile = null;
@@ -809,6 +830,12 @@
 
       const role = tile.getAttribute('data-role');
       if (!role) return;
+
+      // ✅ GA：記錄 12 宮格點擊（哪一格最多人點）
+      gaEvent('select_role', {
+        role_id: role,
+        role_name: roleNameMap[role] || role
+      });
 
       clearSelectedTile();
       tile.classList.add('is-selected');
@@ -865,6 +892,9 @@
       }
       chargeView.classList.remove('shaking');
 
+      // ✅ GA：抽到祝福（完成長按）
+      gaEvent('generate_quote', currentRolePayload());
+
       const flash = document.getElementById('flash-bang');
       flash.style.opacity = 0.65;
       setTimeout(() => { flash.style.opacity = 0; }, 120);
@@ -898,6 +928,9 @@
     }
 
     function resetApp(){
+      // ✅ GA：再抽一張
+      gaEvent('restart', currentRolePayload());
+
       document.getElementById('result-modal').style.display = 'none';
       document.getElementById('home-view').style.display = 'flex';
       appBg.style.backgroundImage = "url('./boom_bk.png')";
@@ -914,6 +947,9 @@
     }
 
     function copyText(){
+      // ✅ GA：點擊 copy
+      gaEvent('click_copy', currentRolePayload({ content_type: 'text' }));
+
       const text = document.getElementById('result-text').innerText;
       if (!navigator.clipboard){
         alert("瀏覽器安全性限制，請手動複製！");
@@ -925,6 +961,13 @@
     }
 
     function shareGeneric(){
+      // ✅ GA：點擊分享（native / generic）
+      gaEvent('share', currentRolePayload({
+        method: 'native',
+        content_type: 'text',
+        has_url: true
+      }));
+
       const text = document.getElementById('result-text').innerText;
       const shareText = text + "\n\n" + siteUrl;
 
@@ -944,12 +987,22 @@
     }
 
     function shareLine(){
+      // ✅ GA：點擊分享到 LINE（分享意圖）
+      gaEvent('share', currentRolePayload({
+        method: 'line',
+        content_type: 'text',
+        has_url: true
+      }));
+
       const text = document.getElementById('result-text').innerText;
       const msg = text + "\n\n" + siteUrl;
       window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
     }
 
     function downloadImage(){
+      // ✅ GA：點擊下載圖片
+      gaEvent('download_image', currentRolePayload({ content_type: 'image' }));
+
       const element = document.getElementById('capture-target');
       html2canvas(element, { backgroundColor: null, scale: 3, logging: false, useCORS: true }).then(canvas => {
         const link = document.createElement('a');
