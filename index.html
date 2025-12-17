@@ -1207,6 +1207,11 @@
     function enterChargeView(role) {
       currentRole = role;
       document.getElementById('home-view').style.display = 'none';
+
+      // 新增：隱藏 Footer 和 SEO 區塊，讓畫面更乾淨
+      document.querySelector('.spp-footer').style.display = 'none';
+      document.querySelector('.seo-faq').style.display = 'none';
+
       chargeView.style.display = 'flex';
       progress = 0;
       isCompleting = false;
@@ -1322,6 +1327,11 @@
 
       document.getElementById('result-modal').style.display = 'none';
       document.getElementById('home-view').style.display = 'flex';
+
+      // 恢復顯示 Footer 和 SEO
+      document.querySelector('.spp-footer').style.display = 'block';
+      document.querySelector('.seo-faq').style.display = 'block';
+
       appBg.style.backgroundImage = "url('./boom_bk.png')";
       clearSelectedTile();
       stopCharge();
