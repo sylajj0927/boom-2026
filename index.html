@@ -2,6 +2,15 @@
 <html lang="zh-TW">
 
 <head>
+  <script>
+    // SPP Redirect Logic: 針對 Zeabur 舊網域的自動導航
+    (function () {
+      if (window.location.hostname.includes('zeabur.app')) {
+        var newUrl = 'https://boom.sppfoundry.co' + window.location.pathname + window.location.search;
+        window.location.replace(newUrl);
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
 
   <!-- 最佳 UX：允許縮放 + 支援瀏海 -->
