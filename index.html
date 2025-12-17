@@ -24,43 +24,42 @@
 
   <meta property="og:type" content="website">
 
- <!-- ✅ OG 文案更新（你選的版本） -->
-<meta property="og:title" content="不知道跨年要傳什麼？一鍵生成 2026 新年祝福">
-<meta property="og:description" content="選角色、長按一下，就能把祝福直接送出去。跨年不再卡詞。">
+  <!-- ✅ OG 文案更新（你選的版本） -->
+  <meta property="og:title" content="不知道跨年要傳什麼？一鍵生成 2026 新年祝福">
+  <meta property="og:description" content="選角色、長按一下，就能把祝福直接送出去。跨年不再卡詞。">
 
-<!-- ✅ OG URL 使用乾淨網址：跨平台（Threads/FB/LINE/IG）一致，避免 OG 快取碎片化 -->
-<meta property="og:url" content="https://boom-card.zeabur.app/">
-<meta property="og:image" content="https://boom-card.zeabur.app/og-newyear-2026.png">
-<meta property="og:locale" content="zh_TW">
+  <!-- ✅ OG URL 使用乾淨網址：跨平台（Threads/FB/LINE/IG）一致，避免 OG 快取碎片化 -->
+  <meta property="og:url" content="https://boom.sppfoundry.co/">
+  <meta property="og:image" content="https://boom.sppfoundry.co/og-newyear-2026.png">
+  <meta property="og:locale" content="zh_TW">
 
-<!-- ✅ Twitter Card（補強部分平台的預覽） -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="不知道跨年要傳什麼？一鍵生成 2026 新年祝福">
-<meta name="twitter:description" content="選角色、長按一下，就能把祝福直接送出去。跨年不再卡詞。">
-<meta name="twitter:image" content="https://boom-card.zeabur.app/og-newyear-2026.png">
-<meta name="twitter:url" content="https://boom-card.zeabur.app/">
+  <!-- ✅ Twitter Card（補強部分平台的預覽） -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="不知道跨年要傳什麼？一鍵生成 2026 新年祝福">
+  <meta name="twitter:description" content="選角色、長按一下，就能把祝福直接送出去。跨年不再卡詞。">
+  <meta name="twitter:image" content="https://boom.sppfoundry.co/og-newyear-2026.png">
+  <meta name="twitter:url" content="https://boom.sppfoundry.co/">
 
-<!-- JSON-LD 結構化資料 -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "2026 新年祝福產生器 (BOOM!)",
-  "url": "https://boom-card.zeabur.app/",
-  "applicationCategory": "LifestyleApplication",
-  "operatingSystem": "All",
-  "inLanguage": "zh-TW",
-  "isAccessibleForFree": true,
-  "description": "一款專為 2026 跨年設計的線上祝福語產生器。依照對象（曖昧、前任、老闆、朋友等）一鍵生成客製化文案。",
-  "image": "https://boom-card.zeabur.app/og-newyear-2026.png",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "TWD"
+  <!-- JSON-LD 結構化資料 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "2026 新年祝福產生器 (BOOM!)",
+    "url": "https://boom.sppfoundry.co/",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "All",
+    "inLanguage": "zh-TW",
+    "isAccessibleForFree": true,
+    "description": "一款專為 2026 跨年設計的線上祝福語產生器。依照對象（曖昧、前任、老闆、朋友等）一鍵生成客製化文案。",
+    "image": "https://boom.sppfoundry.co/og-newyear-2026.png",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "TWD"
+    }
   }
-}
-</script>
-
+  </script>
 
   <!-- 截圖與煙火特效 -->
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -442,15 +441,6 @@
     }
     .icon-btn:active{ background: rgba(255,255,255,0.3); }
 
-    .footer-copyright{
-      margin-top: 30px;
-      padding-bottom: 50px;
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: 1px;
-      font-family: sans-serif;
-    }
-
     #toast{
       position: fixed;
       bottom: 50px;
@@ -568,6 +558,45 @@
       user-select: text;
       -webkit-user-select: text;
     }
+
+    /* SPP Foundry footer (BOOM HTML version) */
+    .spp-footer{
+      width: 100%;
+      max-width: var(--mobile-width);
+      margin: 22px auto 44px;
+      padding: 14px 12px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.65);
+      border-top: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.18);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+    }
+
+    .spp-footer-inner{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .spp-footer-link{
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .spp-footer-link:hover{
+      color: rgba(255,255,255,1);
+      text-decoration: underline;
+    }
+
+    .spp-footer-dot{
+      color: rgba(255,255,255,0.25);
+    }
   </style>
 </head>
 
@@ -656,29 +685,38 @@
           </div>
         </div>
       </div>
+    </div> <!-- ✅ 關閉 #result-modal（重要：SEO 必須在 modal 外） -->
 
-      <div class="footer-copyright">Powered by BOOM 2026</div>
-    </div>
-  </div>
+    <!-- SEO / GEO 可讀內容 -->
+    <section class="seo-faq">
+      <details>
+        <summary>更多 2026 跨年祝福靈感（展開查看）</summary>
 
-  <!-- SEO / GEO 可讀內容 -->
-  <section class="seo-faq">
-    <details>
-      <summary>更多 2026 跨年祝福靈感（展開查看）</summary>
+        <h1>2026 跨年創意祝福語大全</h1>
+        <p>還在煩惱 2026 跨年要傳什麼給曖昧對象嗎？這裡整理了給曖昧、前任、老闆、死黨、爸媽的創意祝福語，讓你一鍵複製、不怕詞窮。</p>
 
-      <h1>2026 跨年創意祝福語大全</h1>
-      <p>還在煩惱 2026 跨年要傳什麼給曖昧對象嗎？這裡整理了給曖昧、前任、老闆、死黨、爸媽的創意祝福語，讓你一鍵複製、不怕詞窮。</p>
+        <h2>給老闆的 2026 跨年祝福</h2>
+        <p>範例如：老闆 2026 也要被您帶飛、希望公司越來越大、謝謝您今年的照顧，也可以玩笑說 2026 希望我們加班有加錢、年終多一點、開會不要再開到半夜。</p>
 
-      <h2>給老闆的 2026 跨年祝福</h2>
-      <p>範例如：老闆 2026 也要被您帶飛、希望公司越來越大、謝謝您今年的照顧，也可以玩笑說 2026 希望我們加班有加錢、年終多一點、開會不要再開到半夜。</p>
+        <h2>給前任的 2026 跨年祝福</h2>
+        <p>範例如：祝我們各自安好，不要互相打擾、希望你過得很好，比跟我在一起時更好、謝謝你曾經讓我那麼認真喜歡過，也祝你找到真正屬於你的幸福。</p>
 
-      <h2>給前任的 2026 跨年祝福</h2>
-      <p>範例如：祝我們各自安好，不要互相打擾、希望你過得很好，比跟我在一起時更好、謝謝你曾經讓我那麼認真喜歡過，也祝你找到真正屬於你的幸福。</p>
+        <h2>給老公老婆的搞笑祝福</h2>
+        <p>範例如：老公，2026 我們要不要簽和平條約，誰先生氣誰睡沙發；老婆，2026 能不能把「隨便」從人生字典裡刪除；或者甜一點：2026 還要一起跨很多個年、繼續當我一輩子的男朋友／女朋友。</p>
+      </details>
+    </section>
 
-      <h2>給老公老婆的搞笑祝福</h2>
-      <p>範例如：老公，2026 我們要不要簽和平條約，誰先生氣誰睡沙發；老婆，2026 能不能把「隨便」從人生字典裡刪除；或者甜一點：2026 還要一起跨很多個年、繼續當我一輩子的男朋友／女朋友。</p>
-    </details>
-  </section>
+    <footer class="spp-footer">
+      <div class="spp-footer-inner">
+        <div class="spp-footer-left">© SPP Foundry</div>
+        <div class="spp-footer-dot">·</div>
+        <div class="spp-footer-right">
+          <a href="mailto:hello@sppfoundry.co" class="spp-footer-link">hello@sppfoundry.co</a>
+        </div>
+      </div>
+    </footer>
+
+  </div> <!-- ✅ 關閉 #app-container -->
 
   <script>
     const bgMap = {
@@ -989,8 +1027,8 @@
     const chargeView = document.getElementById('charge-view');
     const appBg = document.getElementById('app-background');
 
-    // ✅ Zeabur：分享網站用的乾淨 URL（只分享連結，不帶結果）
-    const siteUrl = 'https://boom-card.zeabur.app/';
+    // ✅ Netlify：分享網站用的乾淨 URL（只分享連結，不帶結果）
+    const siteUrl = 'https://boom.sppfoundry.co/';
 
     const grid = document.getElementById('role-grid');
     let lastSelectedTile = null;
